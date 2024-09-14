@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Installing Bun...
+      - curl -fsSL https://bun.sh/install | bash
+      - export BUN_INSTALL="$HOME/.bun"
+      - export PATH="$BUN_INSTALL/bin:$PATH"
+      - bun -v
+      - bun install
+
+  build:
+    commands:
+      - echo Building the application...
+      - bun run build
+
+  post_build:
+    commands:
+      - echo Copying built assets to S3...
+      - aws s3 sync dist/ s3://$S3_BUCKET/
