@@ -1,30 +1,38 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  CertificateArn:
+    Type: String
+  DomainName:
+    Type: String
+
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
     Properties:
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
-        IgnorePublicAcls: false
         BlockPublicPolicy: false
+        IgnorePublicAcls: false
         RestrictPublicBuckets: false
       WebsiteConfiguration:
         IndexDocument: index.html
+        ErrorDocument: index.html
 
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref S3Bucket
       PolicyDocument:
+        Version: "2012-10-17"
         Statement:
-          - Effect: "Allow"
+          - Sid: PublicReadGetObject
+            Effect: Allow
             Principal: "*"
             Action:
-              - "s3:GetObject"
-            Resource:
-              - !Sub "${S3Bucket.Arn}/*"
+              - s3:GetObject
+            Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
 
   CodeBuild:
     Type: AWS::CodeBuild::Project
@@ -67,8 +75,45 @@ Resources:
                   - ecr:PutImage
                   - ecr:UploadLayerPart
                   - s3:GetObject
+                  - s3:ListBucket
                   - s3:PutObject
                   - s3:GetObjectVersion
                   - cloudwatch:*
                   - logs:*
                 Resource: "*"
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Ref DomainName
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            Cookies:
+              Forward: none
+            QueryString: false
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+        Enabled: true
+        Origins:
+          - CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+            DomainName: !Select [1, !Split ["//", !GetAtt S3Bucket.WebsiteURL]]
+            Id: S3Origin
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: "sni-only"
+
+  Route53RecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Sub "${DomainName}."
+      Name: !Sub "${DomainName}."
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: "Z2FDTNDATAQYW2"
