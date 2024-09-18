@@ -23,79 +23,87 @@ import {
 /**
  * 
  * @export
- * @interface MessageResponseDto
+ * @interface MessageRequestResponseDto
  */
-export interface MessageResponseDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof MessageResponseDto
-     */
-    content: string;
+export interface MessageRequestResponseDto {
     /**
      * 
      * @type {Date}
-     * @memberof MessageResponseDto
+     * @memberof MessageRequestResponseDto
+     */
+    approvedAt?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof MessageRequestResponseDto
      */
     createdAt: Date;
     /**
      * 
+     * @type {GroupResponseDtoUsersInner}
+     * @memberof MessageRequestResponseDto
+     */
+    destination: GroupResponseDtoUsersInner;
+    /**
+     * 
      * @type {string}
-     * @memberof MessageResponseDto
+     * @memberof MessageRequestResponseDto
      */
     id: string;
     /**
      * 
      * @type {GroupResponseDtoUsersInner}
-     * @memberof MessageResponseDto
+     * @memberof MessageRequestResponseDto
      */
     source: GroupResponseDtoUsersInner;
     /**
      * 
      * @type {Date}
-     * @memberof MessageResponseDto
+     * @memberof MessageRequestResponseDto
      */
     updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the MessageResponseDto interface.
+ * Check if a given object implements the MessageRequestResponseDto interface.
  */
-export function instanceOfMessageResponseDto(value: object): value is MessageResponseDto {
-    if (!('content' in value) || value['content'] === undefined) return false;
+export function instanceOfMessageRequestResponseDto(value: object): value is MessageRequestResponseDto {
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
+    if (!('destination' in value) || value['destination'] === undefined) return false;
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('source' in value) || value['source'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
     return true;
 }
 
-export function MessageResponseDtoFromJSON(json: any): MessageResponseDto {
-    return MessageResponseDtoFromJSONTyped(json, false);
+export function MessageRequestResponseDtoFromJSON(json: any): MessageRequestResponseDto {
+    return MessageRequestResponseDtoFromJSONTyped(json, false);
 }
 
-export function MessageResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): MessageResponseDto {
+export function MessageRequestResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): MessageRequestResponseDto {
     if (json == null) {
         return json;
     }
     return {
         
-        'content': json['content'],
+        'approvedAt': json['approvedAt'] == null ? undefined : (new Date(json['approvedAt'])),
         'createdAt': (new Date(json['createdAt'])),
+        'destination': GroupResponseDtoUsersInnerFromJSON(json['destination']),
         'id': json['id'],
         'source': GroupResponseDtoUsersInnerFromJSON(json['source']),
         'updatedAt': (new Date(json['updatedAt'])),
     };
 }
 
-export function MessageResponseDtoToJSON(value?: MessageResponseDto | null): any {
+export function MessageRequestResponseDtoToJSON(value?: MessageRequestResponseDto | null): any {
     if (value == null) {
         return value;
     }
     return {
         
-        'content': value['content'],
+        'approvedAt': value['approvedAt'] == null ? undefined : ((value['approvedAt']).toISOString()),
         'createdAt': ((value['createdAt']).toISOString()),
+        'destination': GroupResponseDtoUsersInnerToJSON(value['destination']),
         'id': value['id'],
         'source': GroupResponseDtoUsersInnerToJSON(value['source']),
         'updatedAt': ((value['updatedAt']).toISOString()),

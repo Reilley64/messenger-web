@@ -7,7 +7,7 @@ import {
 } from "~/hooks/useApiSuspenseQuery.ts";
 import { Button } from "~/components/ui/button.tsx";
 import { useQueryClient } from "@tanstack/react-query";
-import type { MessageRequest } from "~/api";
+import type { MessageRequestResponseDto } from "~/api";
 
 export const Route = createFileRoute("/r/$requestId")({
   component: () => <Request />,
@@ -24,7 +24,7 @@ function Request() {
 
   const approveMessageRequestMutation = useMessageRequestRestControllerApiMutation({
     mutationFn: (api) => async () => await api.approveMessageRequest({ messageRequestId: requestId }),
-    onMutate: () => void queryClient.setQueryData(["MessageRequestRestControllerApi", "getMessageRequest", { requestId }], (oldData: MessageRequest) => {
+    onMutate: () => void queryClient.setQueryData(["MessageRequestRestControllerApi", "getMessageRequest", { requestId }], (oldData: MessageRequestResponseDto) => {
       oldData.approvedAt = new Date();
       return oldData;
     }),

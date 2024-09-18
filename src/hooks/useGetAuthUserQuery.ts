@@ -2,9 +2,9 @@ import {
   useAuthRestControllerApiQuery,
   UseAuthRestControllerApiQueryOptions
 } from "~/hooks/useApiQuery";
-import { User } from "~/api";
+import { UserResponseDto } from "~/api";
 
-export type UseGetAuthUserQueryOptions = Omit<UseAuthRestControllerApiQueryOptions<User>, "queryKey" | "queryFn">;
+export type UseGetAuthUserQueryOptions = Omit<UseAuthRestControllerApiQueryOptions<UserResponseDto>, "queryKey" | "queryFn">;
 
 export function useGetAuthUserQuery(options?: UseGetAuthUserQueryOptions) {
   return useAuthRestControllerApiQuery({

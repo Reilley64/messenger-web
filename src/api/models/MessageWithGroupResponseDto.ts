@@ -13,6 +13,12 @@
  */
 
 import { mapValues } from '../runtime';
+import type { MessageWithGroupResponseDtoGroup } from './MessageWithGroupResponseDtoGroup';
+import {
+    MessageWithGroupResponseDtoGroupFromJSON,
+    MessageWithGroupResponseDtoGroupFromJSONTyped,
+    MessageWithGroupResponseDtoGroupToJSON,
+} from './MessageWithGroupResponseDtoGroup';
 import type { GroupResponseDtoUsersInner } from './GroupResponseDtoUsersInner';
 import {
     GroupResponseDtoUsersInnerFromJSON,
@@ -23,58 +29,65 @@ import {
 /**
  * 
  * @export
- * @interface MessageResponseDto
+ * @interface MessageWithGroupResponseDto
  */
-export interface MessageResponseDto {
+export interface MessageWithGroupResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof MessageResponseDto
+     * @memberof MessageWithGroupResponseDto
      */
     content: string;
     /**
      * 
      * @type {Date}
-     * @memberof MessageResponseDto
+     * @memberof MessageWithGroupResponseDto
      */
     createdAt: Date;
     /**
      * 
+     * @type {MessageWithGroupResponseDtoGroup}
+     * @memberof MessageWithGroupResponseDto
+     */
+    group: MessageWithGroupResponseDtoGroup;
+    /**
+     * 
      * @type {string}
-     * @memberof MessageResponseDto
+     * @memberof MessageWithGroupResponseDto
      */
     id: string;
     /**
      * 
      * @type {GroupResponseDtoUsersInner}
-     * @memberof MessageResponseDto
+     * @memberof MessageWithGroupResponseDto
      */
     source: GroupResponseDtoUsersInner;
     /**
      * 
      * @type {Date}
-     * @memberof MessageResponseDto
+     * @memberof MessageWithGroupResponseDto
      */
     updatedAt: Date;
 }
 
 /**
- * Check if a given object implements the MessageResponseDto interface.
+ * Check if a given object implements the MessageWithGroupResponseDto interface.
  */
-export function instanceOfMessageResponseDto(value: object): value is MessageResponseDto {
+export function instanceOfMessageWithGroupResponseDto(value: object): value is MessageWithGroupResponseDto {
     if (!('content' in value) || value['content'] === undefined) return false;
     if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
+    if (!('group' in value) || value['group'] === undefined) return false;
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('source' in value) || value['source'] === undefined) return false;
     if (!('updatedAt' in value) || value['updatedAt'] === undefined) return false;
     return true;
 }
 
-export function MessageResponseDtoFromJSON(json: any): MessageResponseDto {
-    return MessageResponseDtoFromJSONTyped(json, false);
+export function MessageWithGroupResponseDtoFromJSON(json: any): MessageWithGroupResponseDto {
+    return MessageWithGroupResponseDtoFromJSONTyped(json, false);
 }
 
-export function MessageResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): MessageResponseDto {
+export function MessageWithGroupResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean): MessageWithGroupResponseDto {
     if (json == null) {
         return json;
     }
@@ -82,13 +95,14 @@ export function MessageResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: 
         
         'content': json['content'],
         'createdAt': (new Date(json['createdAt'])),
+        'group': MessageWithGroupResponseDtoGroupFromJSON(json['group']),
         'id': json['id'],
         'source': GroupResponseDtoUsersInnerFromJSON(json['source']),
         'updatedAt': (new Date(json['updatedAt'])),
     };
 }
 
-export function MessageResponseDtoToJSON(value?: MessageResponseDto | null): any {
+export function MessageWithGroupResponseDtoToJSON(value?: MessageWithGroupResponseDto | null): any {
     if (value == null) {
         return value;
     }
@@ -96,6 +110,7 @@ export function MessageResponseDtoToJSON(value?: MessageResponseDto | null): any
         
         'content': value['content'],
         'createdAt': ((value['createdAt']).toISOString()),
+        'group': MessageWithGroupResponseDtoGroupToJSON(value['group']),
         'id': value['id'],
         'source': GroupResponseDtoUsersInnerToJSON(value['source']),
         'updatedAt': ((value['updatedAt']).toISOString()),

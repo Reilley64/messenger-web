@@ -10,11 +10,10 @@ import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { useGroupRestControllerApiMutation } from "~/hooks/useApiMutation";
 import { useForm } from "@tanstack/react-form";
 import { useAuthUserContext } from "~/components/AuthUserContext";
-import useWebSocket from "react-use-websocket";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { MessageResponseDtoFromJSON, PagedModelMessageResponseDto } from "~/api";
+import { MessageResponseDto } from "~/api";
 
 export const Route = createFileRoute("/g/$groupId")({
   component: () => <Group />,
@@ -44,20 +43,17 @@ function Group() {
   const getGroupMessagesQuery = useGroupRestControllerApiSuspenseQuery({
     queryKey: ["getGroupMessages", { groupId }],
     queryFn: async (api) => {
-      const page = await api.getMessages({ groupId });
-      return {
-        ...page,
-        content: await Promise.all(page.content!.map(async (message) => ({
-          ...message,
-          content: await decryptMessage(privateKeyBase64, message.content),
-        }))),
-      };
+      const messages = await api.getGroupMessages({ groupId });
+      return await Promise.all(messages.map(async (message) => ({
+        ...message,
+        content: await decryptMessage(privateKeyBase64, message.content),
+      })));
     },
   });
 
   useEffect(() => {
-    if (getGroupMessagesQuery.data.content.length > 1
-      && getGroupMessagesQuery.data.content[getGroupMessagesQuery.data.content.length - 1].user.id === authUser.id
+    if (getGroupMessagesQuery.data.length > 1
+      && getGroupMessagesQuery.data[getGroupMessagesQuery.data.length - 1].source.id === authUser.id
       && messageStartRef.current) {
       messageStartRef.current.scrollIntoView();
     }
@@ -65,10 +61,10 @@ function Group() {
 
   const createMessagesMutation = useGroupRestControllerApiMutation({
     mutationFn: (api) => async (variables: { content: string }) => {
-      return await api.createMessage({
+      return await api.createGroupMessage({
         groupId,
-        messageRequestDto: {
-          content: Object.fromEntries(await Promise.all(getGroupQuery.data.users.map(async (groupUser) => [groupUser.user.id, await encryptMessage(groupUser.user.publicKey, variables.content)]))),
+        body: {
+          content: Object.fromEntries(await Promise.all(getGroupQuery.data.users.map(async (user) => [user.id, await encryptMessage(user.publicKey, variables.content)]))),
         },
       });
     },
@@ -77,25 +73,19 @@ function Group() {
 
       message = { ...message, content: await decryptMessage(privateKeyBase64, message.content) };
 
-      void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: PagedModelMessageResponseDto) => {
-        if (!oldData || !oldData.content) return oldData;
+      void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: Array<MessageResponseDto>) => {
+        if (!oldData) return oldData;
 
-        if (oldData.content.some((oldMessage) => oldMessage.id === message.id)) {
-          return {
-            ...oldData,
-            content: oldData.content.map((oldMessage) => {
-              if (oldMessage.id !== message.id) return oldMessage;
-              return { ...oldMessage, content: message.content };
-            }),
-          };
+        if (oldData.some((oldMessage) => oldMessage.id === message.id)) {
+          return oldData.map((oldMessage) => {
+            if (oldMessage.id !== message.id) return oldMessage;
+            return { ...oldMessage, content: message.content };
+          });
         }
 
         return {
+          message,
           ...oldData,
-          content: [
-            message,
-            ...oldData.content,
-          ],
         };
       });
     },
@@ -120,34 +110,34 @@ function Group() {
     void loadToken();
   }, [token]);
 
-  useWebSocket(`ws://api.messenger.reilley.dev/ws/notifications?token=${token}`, {
-    onMessage: async (event) => {
-      const message = MessageResponseDtoFromJSON(JSON.parse(event.data));
-      message.content = await decryptMessage(privateKeyBase64, message.content);
-
-      void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: PagedModelMessageResponseDto) => {
-        if (!oldData || !oldData.content) return oldData;
-
-        if (oldData.content.some((oldMessage) => oldMessage.id === message.id)) {
-          return {
-            ...oldData,
-            content: oldData.content.map((oldMessage) => {
-              if (oldMessage.id !== message.id) return oldMessage;
-              return { ...oldMessage, content: message.content };
-            }),
-          };
-        }
-
-        return {
-          ...oldData,
-          content: [
-            message,
-            ...oldData.content,
-          ],
-        };
-      });
-    },
-  });
+  // useWebSocket(`ws://api.messenger.reilley.dev/ws/notifications?token=${token}`, {
+  //   onMessage: async (event) => {
+  //     const message = MessageResponseDtoFromJSON(JSON.parse(event.data));
+  //     message.content = await decryptMessage(privateKeyBase64, message.content);
+  //
+  //     void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: PagedModelMessageResponseDto) => {
+  //       if (!oldData || !oldData.content) return oldData;
+  //
+  //       if (oldData.content.some((oldMessage) => oldMessage.id === message.id)) {
+  //         return {
+  //           ...oldData,
+  //           content: oldData.content.map((oldMessage) => {
+  //             if (oldMessage.id !== message.id) return oldMessage;
+  //             return { ...oldMessage, content: message.content };
+  //           }),
+  //         };
+  //       }
+  //
+  //       return {
+  //         ...oldData,
+  //         content: [
+  //           message,
+  //           ...oldData.content,
+  //         ],
+  //       };
+  //     });
+  //   },
+  // });
 
   return (
     <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
@@ -162,22 +152,22 @@ function Group() {
       <div className="flex flex-grow flex-col-reverse overflow-y-scroll px-6">
         <div ref={messageStartRef}/>
 
-        {getGroupMessagesQuery.data.content
-          && getGroupMessagesQuery.data.content.map((message) => (
+        {getGroupMessagesQuery.data
+          && getGroupMessagesQuery.data.map((message) => (
             <div
               key={message.id}
-              className={cn("items-end flex gap-x-1.5 mb-3", message.user.id === authUser.id ? "flex-row-reverse" : "flex-row")}
+              className={cn("items-end flex gap-x-1.5 mb-3", message.source.id === authUser.id ? "flex-row-reverse" : "flex-row")}
             >
-              {message.user.id !== authUser.id && (
+              {message.source.id !== authUser.id && (
                 <Avatar>
-                  <AvatarFallback>{message.user.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
+                  <AvatarFallback>{message.source.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
                 </Avatar>
               )}
 
               <div
                 className={cn(
                   "flex max-w-[75%] flex-col space-y-0.5 rounded-xl border p-3",
-                  message.user.id === authUser.id
+                  message.source.id === authUser.id
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-primary bg-background text-foreground"
                 )}

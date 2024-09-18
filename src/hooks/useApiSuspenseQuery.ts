@@ -26,7 +26,10 @@ export function useApiSuspenseQuery<TQueryFnData = unknown, TData = TQueryFnData
     queryFn: async () => {
       const configuration = new Configuration({
         basePath: "https://api.messenger.reilley.dev",
-        accessToken: async () => (await getAccessToken())!,
+        apiKey: async () => {
+          const token = (await getAccessToken())!
+          return `Bearer ${token}`;
+        },
       });
       return await options.queryFn(configuration);
     },

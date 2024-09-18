@@ -1,12 +1,12 @@
 import { createContext, PropsWithChildren, useContext, useEffect } from "react";
-import { User } from "~/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetAuthUserQuery } from "~/hooks/useGetAuthUserQuery.ts";
 import { useUserRestControllerApiMutation } from "~/hooks/useApiMutation.ts";
 import { Preferences } from "@capacitor/preferences";
+import { UserResponseDto } from "~/api";
 
 type AuthUserContextValue = {
-  authUser: User;
+  authUser: UserResponseDto;
 }
 
 const AuthUserContextValue = createContext<AuthUserContextValue | undefined>(undefined);
@@ -42,7 +42,7 @@ export default function AuthUserContextProvider(props: PropsWithChildren) {
       const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
       const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
 
-      const user = await api.createUser({ userRequestDto: { publicKey: publicKeyBase64 } });
+      const user = await api.createUser({ body: { publicKey: publicKeyBase64 } });
       await Preferences.set({ key: `${user.id}.privateKeyBase64`, value: JSON.stringify(privateKeyBase64) });
 
       return user;

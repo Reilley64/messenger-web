@@ -13,14 +13,11 @@ function Home() {
   const getLatestMessagesQuery = useMessageRestControllerApiSuspenseQuery({
     queryKey: ["getLatestMessages"],
     queryFn: async (api) => {
-      const page = await api.getLatestMessages();
-      return {
-        ...page,
-        content: await Promise.all(page.content!.map(async (message) => ({
-          ...message,
-          content: await decryptMessage(privateKeyBase64, message.content),
-        }))),
-      };
+      const messages = await api.getMessages();
+      return await Promise.all(messages.map(async (message) => ({
+        ...message,
+        content: await decryptMessage(privateKeyBase64, message.content),
+      })));
     },
   });
 
@@ -31,10 +28,10 @@ function Home() {
       </h3>
 
       <div className="space-y-3">
-        {getLatestMessagesQuery.data.content!.map((message) => (
-          <Link key={message.id} to={`/g/${message.user.id}`}>
+        {getLatestMessagesQuery.data.map((message) => (
+          <Link key={message.id} to={`/g/${message.group.id}`}>
             <h4 className="text-lg font-semibold tracking-tight">
-              {message.user.name}
+              {message.source.name}
             </h4>
             <p className="text-muted-foreground">
               {message.content}

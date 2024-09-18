@@ -28,7 +28,10 @@ export function useApiMutation<
     mutationFn: async (variables) => {
       const configuration = new Configuration({
         basePath: "https://api.messenger.reilley.dev",
-        accessToken: async () => (await getAccessToken())!,
+        apiKey: async () => {
+          const token = (await getAccessToken())!
+          return `Bearer ${token}`;
+        },
       });
       return await options.mutationFn(configuration)(variables);
     },
