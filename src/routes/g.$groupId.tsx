@@ -14,7 +14,8 @@ import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageResponseDto } from "~/api";
-import { Button } from "~/components/ui/button.tsx";
+import { Button } from "~/components/ui/button";
+import { v4 as uuid } from "uuid";
 
 export const Route = createFileRoute("/g/$groupId")({
   component: () => <Group />,
@@ -60,35 +61,37 @@ function Group() {
   }, [getGroupMessagesQuery.data]);
 
   const createMessagesMutation = useGroupRestControllerApiMutation({
-    mutationFn: (api) => async (variables: { content: string }) => {
+    mutationFn: (api) => async (variables: { content: string, idempotencyKey: string }) => {
       return await api.createGroupMessage({
         groupId,
         messageRequestDto: {
           content: Object.fromEntries(await Promise.all(getGroupQuery.data.users.map(async (user) => [user.id, await encryptMessage(user.publicKey, variables.content)]))),
+          idempotencyKey: variables.idempotencyKey,
         },
       });
     },
-    onSuccess: async (message) => {
+    onMutate: async (variables) => {
       createMessageForm.reset();
 
-      message = { ...message, content: await decryptMessage(privateKeyBase64, message.content) };
+      const message: Omit<MessageResponseDto, "id"> = { ...variables, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), source: authUser };
 
       void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: Array<MessageResponseDto>) => {
         if (!oldData) return oldData;
 
-        if (oldData.some((oldMessage) => oldMessage.id === message.id)) {
+        if (oldData.some((oldMessage) => oldMessage.idempotencyKey === message.idempotencyKey)) {
           return oldData.map((oldMessage) => {
-            if (oldMessage.id !== message.id) return oldMessage;
+            if (oldMessage.idempotencyKey !== message.idempotencyKey) return oldMessage;
             return { ...oldMessage, content: message.content };
           });
         }
 
-        return {
+        return [
           message,
           ...oldData,
-        };
+        ];
       });
     },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["GroupRestControllerApi", "getGroupMessages", { groupId }] }),
   });
 
   const createMessageForm = useForm({
@@ -96,7 +99,7 @@ function Group() {
       content: "",
     },
     onSubmit: async ({value}) => {
-      createMessagesMutation.mutate(value);
+      createMessagesMutation.mutate({ ...value, idempotencyKey: uuid() });
     },
   });
 
@@ -159,7 +162,7 @@ function Group() {
         {getGroupMessagesQuery.data
           && getGroupMessagesQuery.data.map((message) => (
             <div
-              key={message.id}
+              key={message.idempotencyKey}
               className={cn("items-end flex gap-x-1.5 mb-3", message.source.id === authUser.id ? "flex-row-reverse" : "flex-row")}
             >
               {message.source.id !== authUser.id && (

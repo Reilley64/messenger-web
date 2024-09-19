@@ -25,6 +25,7 @@ export function useApiSuspenseQuery<TQueryFnData = unknown, TData = TQueryFnData
     ...options,
     queryFn: async () => {
       const configuration = new Configuration({
+        basePath: "http://localhost:8080",
         accessToken: async () => (await getAccessToken())!,
       });
       return await options.queryFn(configuration);
