@@ -4,12 +4,14 @@ import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { useGetAuthUserSuspenseQuery } from "~/hooks/useGetAuthUserSuspenseQuery";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext.tsx";
+import { useAuthorizationContext } from "~/components/AuthorizationContext.tsx";
 
 export const Route = createFileRoute("/settings")({
   component: () => <Settings />,
 });
 
 function Settings() {
+  const { logout } = useAuthorizationContext();
   const { privateKeyBase64 } = usePrivateKeyContext();
 
   const authUser = useGetAuthUserSuspenseQuery();
@@ -18,7 +20,7 @@ function Settings() {
     await window.navigator.clipboard.writeText(`https://messenger.reilley.dev/u/${authUser.data.id}`);
   }
 
-  async function exportPrivateKey() {
+  function exportPrivateKey() {
     const blob = new Blob([privateKeyBase64], { type: "text/plain;charset=utf-8" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -57,6 +59,10 @@ function Settings() {
           <FileKeyIcon className="mr-2 h-4 w-4" /> Export private key
         </Button>
       </div>
+
+      <Button className="justify-start rounded-none" onClick={() => logout()} variant="ghost">
+        <FileKeyIcon className="mr-2 h-4 w-4" /> Logout
+      </Button>
     </div>
   );
 }

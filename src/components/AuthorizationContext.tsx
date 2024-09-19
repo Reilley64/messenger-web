@@ -14,6 +14,7 @@ import z from "zod";
 
 type AuthorizationContextValue = {
   getAccessToken: () => Promise<string | undefined>;
+  logout: () => void;
 }
 
 const AuthorizationContext = createContext<AuthorizationContextValue | undefined>(undefined);
@@ -49,7 +50,7 @@ export default function AuthorizationContextProvider(props: PropsWithChildren) {
   const { children } = props;
 
   const [authentication, setAuthentication] = useState<{ accessToken: string; expiresAt: Date }>();
-  const [refreshToken, setRefreshToken] = useCookieState("refreshToken", "");
+  const [refreshToken, setRefreshToken] = useCookieState<string | undefined>("refreshToken", undefined);
 
   const initiateAuthMutation = useMutation({
     mutationFn: (variables: { authFlow: AuthFlowType, authParameters: Record<string, string> }) => {
@@ -138,6 +139,11 @@ export default function AuthorizationContextProvider(props: PropsWithChildren) {
 
     return authentication.accessToken;
   }, [authentication, refreshToken]);
+
+  const logout = useCallback(() => {
+    setAuthentication(undefined);
+    setRefreshToken(undefined);
+  }, [setAuthentication, setRefreshToken])
 
   if (!authentication && !refreshToken) {
     if (initiateAuthMutation.isSuccess && initiateAuthMutation.data.ChallengeName === ChallengeNameType.NEW_PASSWORD_REQUIRED) {
@@ -253,7 +259,7 @@ export default function AuthorizationContextProvider(props: PropsWithChildren) {
   }
 
   return (
-    <AuthorizationContext.Provider value={{ getAccessToken }}>
+    <AuthorizationContext.Provider value={{ getAccessToken, logout }}>
       {children}
     </AuthorizationContext.Provider>
   );
