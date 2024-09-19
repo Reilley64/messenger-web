@@ -1,10 +1,10 @@
-import { createContext, PropsWithChildren, useContext } from "react";
-import usePreferenceState from "~/hooks/usePreferenceState";
+import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext } from "react";
+import useLocalStorageState from "~/hooks/useLocalStorageState";
 import { useAuthUserContext } from "~/components/AuthUserContext.tsx";
 
 type PrivateKeyContextValue = {
   privateKeyBase64: string;
-  setPrivateKeyBase64: (value: string) => Promise<void>;
+  setPrivateKeyBase64: Dispatch<SetStateAction<string | undefined>>;
 }
 
 const PrivateKeyContext = createContext<PrivateKeyContextValue | undefined>(undefined);
@@ -22,7 +22,7 @@ export default function PrivateKeyContextProvider(props: PropsWithChildren) {
 
   const { authUser } = useAuthUserContext();
 
-  const [privateKeyBase64, setPrivateKeyBase64] = usePreferenceState<string>(`${authUser.id}.privateKeyBase64`);
+  const [privateKeyBase64, setPrivateKeyBase64] = useLocalStorageState<string | undefined>(`${authUser.id}.privateKeyBase64`, undefined);
 
   if (!privateKeyBase64) {
     return "No private key";

@@ -11,12 +11,18 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as SettingsImport } from './routes/settings'
 import { Route as IndexImport } from './routes/index'
 import { Route as UUserIdImport } from './routes/u.$userId'
 import { Route as RRequestIdImport } from './routes/r.$requestId'
 import { Route as GGroupIdImport } from './routes/g.$groupId'
 
 // Create/Update Routes
+
+const SettingsRoute = SettingsImport.update({
+  path: '/settings',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   path: '/',
@@ -49,6 +55,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsImport
+      parentRoute: typeof rootRoute
+    }
     '/g/$groupId': {
       id: '/g/$groupId'
       path: '/g/$groupId'
@@ -77,6 +90,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/g/$groupId': typeof GGroupIdRoute
   '/r/$requestId': typeof RRequestIdRoute
   '/u/$userId': typeof UUserIdRoute
@@ -84,6 +98,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/g/$groupId': typeof GGroupIdRoute
   '/r/$requestId': typeof RRequestIdRoute
   '/u/$userId': typeof UUserIdRoute
@@ -92,6 +107,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/g/$groupId': typeof GGroupIdRoute
   '/r/$requestId': typeof RRequestIdRoute
   '/u/$userId': typeof UUserIdRoute
@@ -99,15 +115,22 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/g/$groupId' | '/r/$requestId' | '/u/$userId'
+  fullPaths: '/' | '/settings' | '/g/$groupId' | '/r/$requestId' | '/u/$userId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/g/$groupId' | '/r/$requestId' | '/u/$userId'
-  id: '__root__' | '/' | '/g/$groupId' | '/r/$requestId' | '/u/$userId'
+  to: '/' | '/settings' | '/g/$groupId' | '/r/$requestId' | '/u/$userId'
+  id:
+    | '__root__'
+    | '/'
+    | '/settings'
+    | '/g/$groupId'
+    | '/r/$requestId'
+    | '/u/$userId'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   GGroupIdRoute: typeof GGroupIdRoute
   RRequestIdRoute: typeof RRequestIdRoute
   UUserIdRoute: typeof UUserIdRoute
@@ -115,6 +138,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   GGroupIdRoute: GGroupIdRoute,
   RRequestIdRoute: RRequestIdRoute,
   UUserIdRoute: UUserIdRoute,
@@ -133,6 +157,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/settings",
         "/g/$groupId",
         "/r/$requestId",
         "/u/$userId"
@@ -140,6 +165,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/settings": {
+      "filePath": "settings.tsx"
     },
     "/g/$groupId": {
       "filePath": "g.$groupId.tsx"

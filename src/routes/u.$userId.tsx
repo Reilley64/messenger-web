@@ -21,7 +21,7 @@ function User() {
 
   const createMessageRequestMutation = useMessageRequestRestControllerApiMutation({
     mutationFn: (api) => async () => await api.createMessageRequest({
-      body: {
+      messageRequestRequestDto: {
         destinationId: getUserQuery.data.id,
       },
     }),

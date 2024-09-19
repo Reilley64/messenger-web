@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { useMessageRestControllerApiSuspenseQuery } from "~/hooks/useApiSuspenseQuery";
 import { decryptMessage } from "~/lib/utils.ts";
+import { UserIcon } from "lucide-react";
+import { Button } from "~/components/ui/button.tsx";
 
 export const Route = createFileRoute("/")({
   component: () => <Home />,
@@ -23,9 +25,17 @@ function Home() {
 
   return (
     <div className="space-y-6 p-6">
-      <h3 className="text-2xl font-semibold tracking-tight">
-        Chats
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-2xl font-semibold tracking-tight">
+          Chats
+        </h3>
+
+        <Link to="/settings">
+          <Button size="icon" variant="ghost">
+            <UserIcon />
+          </Button>
+        </Link>
+      </div>
 
       <div className="space-y-3">
         {getLatestMessagesQuery.data.map((message) => (

@@ -1,8 +1,8 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import {
   useGroupRestControllerApiSuspenseQuery,
 } from "~/hooks/useApiSuspenseQuery";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, ChevronLeftIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { cn, decryptMessage, encryptMessage } from "~/lib/utils";
@@ -14,6 +14,7 @@ import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageResponseDto } from "~/api";
+import { Button } from "~/components/ui/button.tsx";
 
 export const Route = createFileRoute("/g/$groupId")({
   component: () => <Group />,
@@ -63,7 +64,7 @@ function Group() {
     mutationFn: (api) => async (variables: { content: string }) => {
       return await api.createGroupMessage({
         groupId,
-        body: {
+        messageRequestDto: {
           content: Object.fromEntries(await Promise.all(getGroupQuery.data.users.map(async (user) => [user.id, await encryptMessage(user.publicKey, variables.content)]))),
         },
       });
@@ -141,8 +142,12 @@ function Group() {
 
   return (
     <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
-      <div className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-6">
-        <ArrowLeftIcon onClick={() => router.history.go(-1)}/>
+      <div className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-4">
+        <Link to="/">
+          <Button size="icon" variant="ghost">
+            <ChevronLeftIcon />
+          </Button>
+        </Link>
 
         <h4 className="text-xl font-semibold tracking-tight">
           {getGroupQuery.data.name}
@@ -176,7 +181,7 @@ function Group() {
                   {message.content}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {message.createdAt.getHours().toString().padStart(2, "0")}:{message.createdAt.getMinutes().toString().padStart(2, "0")}
+                  {message.createdAt}
                 </p>
               </div>
             </div>

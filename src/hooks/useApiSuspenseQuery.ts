@@ -25,18 +25,14 @@ export function useApiSuspenseQuery<TQueryFnData = unknown, TData = TQueryFnData
     ...options,
     queryFn: async () => {
       const configuration = new Configuration({
-        basePath: "https://api.messenger.reilley.dev",
-        apiKey: async () => {
-          const token = (await getAccessToken())!
-          return `Bearer ${token}`;
-        },
+        accessToken: async () => (await getAccessToken())!,
       });
       return await options.queryFn(configuration);
     },
   });
 }
 
-export interface UseAuthRestControllerApiQueryOptions<
+export interface UseAuthRestControllerApiSuspenseQueryOptions<
   TQueryFnData = unknown,
   TData = TQueryFnData,
 > extends Omit<UseApiSuspenseQueryOptions<TQueryFnData, TData>, "queryFn"> {
@@ -46,7 +42,7 @@ export interface UseAuthRestControllerApiQueryOptions<
 export function useAuthRestControllerApiSuspenseQuery<
   TQueryFnData = unknown,
   TData = TQueryFnData,
->(options: UseAuthRestControllerApiQueryOptions<TQueryFnData, TData>) {
+>(options: UseAuthRestControllerApiSuspenseQueryOptions<TQueryFnData, TData>) {
   return useApiSuspenseQuery({
     ...options,
     queryKey: ["AuthRestControllerApi", ...options.queryKey],

@@ -1,7 +1,8 @@
 import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 import {
   Configuration,
-  GroupRestControllerApi, MessageRequestRestControllerApi,
+  GroupRestControllerApi,
+  MessageRequestRestControllerApi,
   MessageRestControllerApi,
   ResponseError,
   UserRestControllerApi
@@ -27,11 +28,7 @@ export function useApiMutation<
     ...options,
     mutationFn: async (variables) => {
       const configuration = new Configuration({
-        basePath: "https://api.messenger.reilley.dev",
-        apiKey: async () => {
-          const token = (await getAccessToken())!
-          return `Bearer ${token}`;
-        },
+        accessToken: async () => (await getAccessToken())!,
       });
       return await options.mutationFn(configuration)(variables);
     },

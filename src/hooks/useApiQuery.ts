@@ -25,11 +25,7 @@ export function useApiQuery<TQueryFnData = unknown, TData = TQueryFnData>(
     ...options,
     queryFn: async () => {
       const configuration = new Configuration({
-        basePath: "https://api.messenger.reilley.dev",
-        apiKey: async () => {
-          const token = (await getAccessToken())!
-          return `Bearer ${token}`;
-        },
+        accessToken: async () => (await getAccessToken())!,
       });
       return await options.queryFn(configuration);
     },

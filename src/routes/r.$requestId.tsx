@@ -25,7 +25,7 @@ function Request() {
   const approveMessageRequestMutation = useMessageRequestRestControllerApiMutation({
     mutationFn: (api) => async () => await api.approveMessageRequest({ messageRequestId: requestId }),
     onMutate: () => void queryClient.setQueryData(["MessageRequestRestControllerApi", "getMessageRequest", { requestId }], (oldData: MessageRequestResponseDto) => {
-      oldData.approvedAt = new Date();
+      oldData.approvedAt = new Date().toISOString();
       return oldData;
     }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["MessageRequestRestControllerApi", "getMessageRequest", { requestId }] }),
