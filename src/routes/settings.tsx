@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronLeftIcon, FileKeyIcon, ShareIcon } from "lucide-react";
+import { ChevronLeftIcon, FileKeyIcon, LogOutIcon, ShareIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { useGetAuthUserSuspenseQuery } from "~/hooks/useGetAuthUserSuspenseQuery";
-import { usePrivateKeyContext } from "~/components/PrivateKeyContext.tsx";
-import { useAuthorizationContext } from "~/components/AuthorizationContext.tsx";
+import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
+import { useAuthorizationContext } from "~/components/AuthorizationContext";
 
 export const Route = createFileRoute("/settings")({
   component: () => <Settings />,
@@ -58,11 +58,11 @@ function Settings() {
         <Button className="justify-start rounded-none" onClick={() => exportPrivateKey()} variant="ghost">
           <FileKeyIcon className="mr-2 h-4 w-4" /> Export private key
         </Button>
-      </div>
 
-      <Button className="justify-start rounded-none" onClick={() => logout()} variant="ghost">
-        <FileKeyIcon className="mr-2 h-4 w-4" /> Logout
-      </Button>
+        <Button className="justify-start rounded-none" onClick={() => logout()} variant="ghost">
+          <LogOutIcon className="mr-2 h-4 w-4" /> Logout
+        </Button>
+      </div>
     </div>
   );
 }

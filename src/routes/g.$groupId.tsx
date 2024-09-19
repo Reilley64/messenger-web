@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   useGroupRestControllerApiSuspenseQuery,
 } from "~/hooks/useApiSuspenseQuery";
-import { ArrowLeftIcon, ChevronLeftIcon } from "lucide-react";
+import { ChevronLeftIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { cn, decryptMessage, encryptMessage } from "~/lib/utils";
@@ -21,12 +21,11 @@ export const Route = createFileRoute("/g/$groupId")({
 });
 
 function Group() {
-  const {getAccessToken} = useAuthorizationContext();
-  const {authUser} = useAuthUserContext();
+  const { getAccessToken } = useAuthorizationContext();
+  const { authUser } = useAuthUserContext();
   const { groupId } = Route.useParams();
-  const {privateKeyBase64} = usePrivateKeyContext();
+  const { privateKeyBase64 } = usePrivateKeyContext();
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   const messageStartRef = useRef<HTMLDivElement>(null);
 

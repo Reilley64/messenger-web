@@ -46,6 +46,12 @@ export interface MessageResponseDto {
     id: string;
     /**
      * 
+     * @type {string}
+     * @memberof MessageResponseDto
+     */
+    idempotencyKey?: string | null;
+    /**
+     * 
      * @type {UserResponseDto}
      * @memberof MessageResponseDto
      */
@@ -83,6 +89,7 @@ export function MessageResponseDtoFromJSONTyped(json: any, ignoreDiscriminator: 
         'content': json['content'],
         'createdAt': json['createdAt'],
         'id': json['id'],
+        'idempotencyKey': json['idempotencyKey'] == null ? undefined : json['idempotencyKey'],
         'source': UserResponseDtoFromJSON(json['source']),
         'updatedAt': json['updatedAt'],
     };
@@ -97,6 +104,7 @@ export function MessageResponseDtoToJSON(value?: MessageResponseDto | null): any
         'content': value['content'],
         'createdAt': value['createdAt'],
         'id': value['id'],
+        'idempotencyKey': value['idempotencyKey'],
         'source': UserResponseDtoToJSON(value['source']),
         'updatedAt': value['updatedAt'],
     };

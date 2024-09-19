@@ -20,7 +20,6 @@ export default function useLocalStorageState<S>(key: string, initialState: S | (
   function setValue(value: S | ((prevState: S) => S)) {
     const newValue = isFunction(value) ? (value as (prevState: S) => S)(state) : value;
     setState(newValue);
-    console.log("here", newValue);
     localStorage.setItem(key, JSON.stringify(newValue));
   }
 

@@ -58,6 +58,12 @@ export interface MessageWithGroupResponseDto {
     id: string;
     /**
      * 
+     * @type {string}
+     * @memberof MessageWithGroupResponseDto
+     */
+    idempotencyKey?: string | null;
+    /**
+     * 
      * @type {UserResponseDto}
      * @memberof MessageWithGroupResponseDto
      */
@@ -97,6 +103,7 @@ export function MessageWithGroupResponseDtoFromJSONTyped(json: any, ignoreDiscri
         'createdAt': json['createdAt'],
         'group': GroupResponseDtoFromJSON(json['group']),
         'id': json['id'],
+        'idempotencyKey': json['idempotencyKey'] == null ? undefined : json['idempotencyKey'],
         'source': UserResponseDtoFromJSON(json['source']),
         'updatedAt': json['updatedAt'],
     };
@@ -112,6 +119,7 @@ export function MessageWithGroupResponseDtoToJSON(value?: MessageWithGroupRespon
         'createdAt': value['createdAt'],
         'group': GroupResponseDtoToJSON(value['group']),
         'id': value['id'],
+        'idempotencyKey': value['idempotencyKey'],
         'source': UserResponseDtoToJSON(value['source']),
         'updatedAt': value['updatedAt'],
     };

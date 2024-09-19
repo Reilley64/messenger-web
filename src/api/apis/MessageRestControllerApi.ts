@@ -43,7 +43,7 @@ export class MessageRestControllerApi extends runtime.BaseAPI {
             }
         }
         const response = await this.request({
-            path: `/v1/messages/messages`,
+            path: `/v1/messages/`,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,

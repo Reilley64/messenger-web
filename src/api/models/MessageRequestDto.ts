@@ -25,6 +25,12 @@ export interface MessageRequestDto {
      * @memberof MessageRequestDto
      */
     content: { [key: string]: string; };
+    /**
+     * 
+     * @type {string}
+     * @memberof MessageRequestDto
+     */
+    idempotencyKey?: string | null;
 }
 
 /**
@@ -46,6 +52,7 @@ export function MessageRequestDtoFromJSONTyped(json: any, ignoreDiscriminator: b
     return {
         
         'content': json['content'],
+        'idempotencyKey': json['idempotencyKey'] == null ? undefined : json['idempotencyKey'],
     };
 }
 
@@ -56,6 +63,7 @@ export function MessageRequestDtoToJSON(value?: MessageRequestDto | null): any {
     return {
         
         'content': value['content'],
+        'idempotencyKey': value['idempotencyKey'],
     };
 }
 

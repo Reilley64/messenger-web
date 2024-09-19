@@ -148,6 +148,14 @@ export class GroupRestControllerApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("bearer_auth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
         const response = await this.request({
             path: `/v1/groups/{group_id}/messages`.replace(`{${"group_id"}}`, encodeURIComponent(String(requestParameters['groupId']))),
             method: 'GET',
