@@ -6,4 +6,3 @@ export * from './GroupRestControllerApi';
 export * from './MessageRequestRestControllerApi';
 export * from './MessageRestControllerApi';
 export * from './UserRestControllerApi';
-export * from './V1Api';
