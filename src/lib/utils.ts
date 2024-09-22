@@ -1,8 +1,29 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { createReactQueryHooks } from "@rspc/react-query";
+import { Procedures } from "~/gen.ts";
+
+export const rspc = createReactQueryHooks<Procedures>();
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export function arrayBufferToBase64(buffer: ArrayBuffer) {
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+export function arrayBufferToBase64Url(buffer: ArrayBuffer) {
+  return arrayBufferToBase64(buffer)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
 }
 
 export async function encryptMessage(publicKeyBase64: string, message: string) {

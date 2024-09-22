@@ -1,8 +1,8 @@
 import { createContext, PropsWithChildren, useContext, useEffect } from "react";
+import { rspc } from "~/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGetAuthUserQuery } from "~/hooks/useGetAuthUserQuery.ts";
-import { useUserRestControllerApiMutation } from "~/hooks/useApiMutation.ts";
-import { UserResponseDto } from "~/api";
+import Loading from "~/components/Loading";
+import { UserResponseDto } from "~/gen";
 
 type AuthUserContextValue = {
   authUser: UserResponseDto;
@@ -23,12 +23,16 @@ export default function AuthUserContextProvider(props: PropsWithChildren) {
 
   const queryClient = useQueryClient();
 
-  const getAuthUserQuery = useGetAuthUserQuery({
-    retry: (failureCount, error) => failureCount < 3 && error.response.status !== 404,
+  const getAuthUserQuery = rspc.useQuery(["AuthController.getAuthUser"], {
+    retry: (failureCount, error) => failureCount < 3 && error.code !== 404,
   });
 
-  const createUserMutation = useUserRestControllerApiMutation({
-    mutationFn: (api) => async () => {
+  const createUserMutation = rspc.useMutation("UserController.createUser", {
+    onSuccess: (data) => queryClient.setQueryData(["getAuthUser"], data),
+  });
+
+  useEffect(() => {
+    async function createUser() {
       const keyPair = await window.crypto.subtle.generateKey(
         { name: "RSA-OAEP", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: { name: "SHA-256" } },
         true,
@@ -41,23 +45,17 @@ export default function AuthUserContextProvider(props: PropsWithChildren) {
       const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
       const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
 
-      const user = await api.createUser({ userRequestDto: { publicKey: publicKeyBase64 } });
+      const user = await createUserMutation.mutateAsync({ publicKey: publicKeyBase64 });
       localStorage.setItem(`${user.id}.privateKeyBase64`, JSON.stringify(privateKeyBase64));
+    }
 
-      return user;
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["AuthRestControllerApi", "getAuthUser"], data);
-    },
-  });
-
-  useEffect(() => {
-    if (getAuthUserQuery.isError && getAuthUserQuery.error.response.status === 404 && !createUserMutation.isPending) {
-      createUserMutation.mutate();
+    if (getAuthUserQuery.isError && getAuthUserQuery.error.code === 404 && !createUserMutation.isSuccess && !createUserMutation.isPending) {
+      void createUser()
     }
   }, [
     getAuthUserQuery.isError,
-    getAuthUserQuery.error?.response.status,
+    getAuthUserQuery.error?.code,
+    createUserMutation.isSuccess,
     createUserMutation.isPending,
   ]);
 
@@ -69,5 +67,5 @@ export default function AuthUserContextProvider(props: PropsWithChildren) {
     );
   }
 
-  return "Loading...";
+  return <Loading />;
 }

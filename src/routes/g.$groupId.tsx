@@ -1,21 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  useGroupRestControllerApiSuspenseQuery,
-} from "~/hooks/useApiSuspenseQuery";
 import { ChevronLeftIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
-import { cn, decryptMessage, encryptMessage } from "~/lib/utils";
+import { cn, decryptMessage, encryptMessage, rspc } from "~/lib/utils";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
-import { useGroupRestControllerApiMutation } from "~/hooks/useApiMutation";
 import { useForm } from "@tanstack/react-form";
 import { useAuthUserContext } from "~/components/AuthUserContext";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { MessageResponseDto } from "~/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { v4 as uuid } from "uuid";
+import Loading from "~/components/Loading";
+import { MessageResponseDto } from "~/gen.ts";
 
 export const Route = createFileRoute("/g/$groupId")({
   component: () => <Group />,
@@ -36,44 +33,39 @@ function Group() {
     }
   }, [messageStartRef.current]);
 
-  const getGroupQuery = useGroupRestControllerApiSuspenseQuery({
-    queryKey: ["getGroup", { groupId }],
-    queryFn: async (api) => await api.getGroup({ groupId }),
-  });
-
-  const getGroupMessagesQuery = useGroupRestControllerApiSuspenseQuery({
-    queryKey: ["getGroupMessages", { groupId }],
-    queryFn: async (api) => {
-      const messages = await api.getGroupMessages({ groupId });
-      return await Promise.all(messages.map(async (message) => ({
+  const getGroupQuery = rspc.useQuery(["GroupController.getGroup", groupId]);
+  const getGroupMessagesQuery = rspc.useQuery(["GroupController.getGroupMessages", groupId]);
+  const getGroupMessagesDecryptedQuery = useQuery({
+    queryKey: ["getGroupMessagesDecrypted", getGroupMessagesQuery.data],
+    queryFn: async () => {
+      return await Promise.all(getGroupMessagesQuery.data.map(async (message) => ({
         ...message,
         content: await decryptMessage(privateKeyBase64, message.content),
       })));
     },
+    enabled: getGroupMessagesQuery.isSuccess,
   });
 
   useEffect(() => {
-    if (getGroupMessagesQuery.data.length > 1
-      && getGroupMessagesQuery.data[getGroupMessagesQuery.data.length - 1].source.id === authUser.id
+    if (getGroupMessagesDecryptedQuery.isSuccess
+      && getGroupMessagesDecryptedQuery.data.length > 1
+      && getGroupMessagesDecryptedQuery.data[getGroupMessagesDecryptedQuery.data.length - 1].source.id === authUser.id
       && messageStartRef.current) {
       messageStartRef.current.scrollIntoView();
     }
-  }, [getGroupMessagesQuery.data]);
+  }, [getGroupMessagesDecryptedQuery.isSuccess, getGroupMessagesDecryptedQuery.data]);
 
-  const createMessagesMutation = useGroupRestControllerApiMutation({
-    mutationFn: (api) => async (variables: { content: string, idempotencyKey: string }) => {
-      return await api.createGroupMessage({
-        groupId,
-        messageRequestDto: {
-          content: Object.fromEntries(await Promise.all(getGroupQuery.data.users.map(async (user) => [user.id, await encryptMessage(user.publicKey, variables.content)]))),
-          idempotencyKey: variables.idempotencyKey,
-        },
-      });
-    },
-    onMutate: async (variables) => {
+  const createGroupMessageMutation = rspc.useMutation("GroupController.createGroupMessage", {
+    onMutate: async ([, messageRequest]) => {
       createMessageForm.reset();
 
-      const message: Omit<MessageResponseDto, "id"> = { ...variables, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), source: authUser };
+      const message: Omit<MessageResponseDto, "id"> = {
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        source: authUser,
+        content: messageRequest.content[authUser.id],
+        idempotencyKey: messageRequest.idempotencyKey
+      };
 
       void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: Array<MessageResponseDto>) => {
         if (!oldData) return oldData;
@@ -91,15 +83,21 @@ function Group() {
         ];
       });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["GroupRestControllerApi", "getGroupMessages", { groupId }] }),
+    onSuccess: (_data, [groupId]) => queryClient.invalidateQueries({ queryKey: ["GroupController.getGroupMessages", groupId] }),
   });
 
   const createMessageForm = useForm({
     defaultValues: {
       content: "",
     },
-    onSubmit: async ({value}) => {
-      createMessagesMutation.mutate({ ...value, idempotencyKey: uuid() });
+    onSubmit: async ({ value }) => {
+      createGroupMessageMutation.mutate([
+        getGroupQuery.data.id,
+        {
+          content: Object.fromEntries(await Promise.all(getGroupQuery.data.users.map(async (user) => [user.id, await encryptMessage(user.publicKey, value.content)]))),
+          idempotencyKey: uuid(),
+        },
+      ]);
     },
   });
 
@@ -142,76 +140,80 @@ function Group() {
   //   },
   // });
 
-  return (
-    <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
-      <div className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-4">
-        <Link to="/">
-          <Button size="icon" variant="ghost">
-            <ChevronLeftIcon />
-          </Button>
-        </Link>
+  if (getGroupMessagesDecryptedQuery.isSuccess) {
+    return (
+      <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
+        <div className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-4">
+          <Link to="/">
+            <Button size="icon" variant="ghost">
+              <ChevronLeftIcon />
+            </Button>
+          </Link>
 
-        <h4 className="text-xl font-semibold tracking-tight">
-          {getGroupQuery.data.name}
-        </h4>
-      </div>
+          <h4 className="text-xl font-semibold tracking-tight">
+            {getGroupQuery.data.name}
+          </h4>
+        </div>
 
-      <div className="flex flex-grow flex-col-reverse overflow-y-scroll px-6">
-        <div ref={messageStartRef}/>
+        <div className="flex flex-grow flex-col-reverse overflow-y-scroll px-6">
+          <div ref={messageStartRef}/>
 
-        {getGroupMessagesQuery.data
-          && getGroupMessagesQuery.data.map((message) => (
-            <div
-              key={message.idempotencyKey}
-              className={cn("items-end flex gap-x-1.5 mb-3", message.source.id === authUser.id ? "flex-row-reverse" : "flex-row")}
-            >
-              {message.source.id !== authUser.id && (
-                <Avatar>
-                  <AvatarFallback>{message.source.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
-                </Avatar>
-              )}
-
+          {getGroupMessagesDecryptedQuery.data
+            && getGroupMessagesDecryptedQuery.data.map((message) => (
               <div
-                className={cn(
-                  "flex max-w-[75%] flex-col space-y-0.5 rounded-xl border p-3",
-                  message.source.id === authUser.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-primary bg-background text-foreground"
-                )}
+                key={message.idempotencyKey}
+                className={cn("items-end flex gap-x-1.5 mb-3", message.source.id === authUser.id ? "flex-row-reverse" : "flex-row")}
               >
-                <p>
-                  {message.content}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {message.createdAt}
-                </p>
-              </div>
-            </div>
-          ))}
-      </div>
+                {message.source.id !== authUser.id && (
+                  <Avatar>
+                    <AvatarFallback>{message.source.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
+                  </Avatar>
+                )}
 
-      <form
-        className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void createMessageForm.handleSubmit();
-        }}
-      >
-        <createMessageForm.Field
-          name="content"
-          children={(field) => (
-            <Input
-              id={field.name}
-              name={field.name}
-              onBlur={field.handleBlur}
-              onChange={(e) => field.handleChange(e.target.value)}
-              placeholder="Message"
-              value={field.state.value}
-            />
-          )}
-        />
-      </form>
-    </div>
-  );
+                <div
+                  className={cn(
+                    "flex max-w-[75%] flex-col space-y-0.5 rounded-xl border p-3",
+                    message.source.id === authUser.id
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-primary bg-background text-foreground"
+                  )}
+                >
+                  <p>
+                    {message.content}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {message.createdAt}
+                  </p>
+                </div>
+              </div>
+            ))}
+        </div>
+
+        <form
+          className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void createMessageForm.handleSubmit();
+          }}
+        >
+          <createMessageForm.Field
+            name="content"
+            children={(field) => (
+              <Input
+                id={field.name}
+                name={field.name}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Message"
+                value={field.state.value}
+              />
+            )}
+          />
+        </form>
+      </div>
+    );
+  }
+
+  return <Loading />;
 }

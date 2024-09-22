@@ -7,12 +7,9 @@ function isFunction<S>(value: unknown): value is () => S {
 export default function useLocalStorageState<S>(key: string, initialState: S | (() => S)): [S, Dispatch<SetStateAction<S>>] {
   const [state, setState] = useState<S>(() => {
     const value = localStorage.getItem(key);
-    console.log(key, value);
-
     if (value) {
       return JSON.parse(value);
     }
-
     return isFunction(initialState) ? initialState() : initialState;
   });
 

@@ -2,10 +2,11 @@ import { Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "~/routeTree.gen";
-
-const client = new QueryClient();
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const router = createRouter({ routeTree });
+
+const client = new QueryClient();
 
 export default function App() {
   useEffect(() => {
@@ -17,6 +18,8 @@ export default function App() {
       <Suspense fallback="Loading...">
         <RouterProvider router={router} />
       </Suspense>
+
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

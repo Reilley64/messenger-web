@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ChevronLeftIcon, FileKeyIcon, LogOutIcon, ShareIcon } from "lucide-react";
+import { BellPlus, ChevronLeftIcon, FileKeyIcon, LogOutIcon, ShareIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
-import { useGetAuthUserSuspenseQuery } from "~/hooks/useGetAuthUserSuspenseQuery";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
+import { arrayBufferToBase64Url, rspc } from "~/lib/utils";
+import { useAuthUserContext } from "~/components/AuthUserContext";
 
 export const Route = createFileRoute("/settings")({
   component: () => <Settings />,
@@ -12,19 +13,43 @@ export const Route = createFileRoute("/settings")({
 
 function Settings() {
   const { logout } = useAuthorizationContext();
+  const { authUser } = useAuthUserContext();
   const { privateKeyBase64 } = usePrivateKeyContext();
 
-  const authUser = useGetAuthUserSuspenseQuery();
+  const createUserPushSubscriptionMutation = rspc.useMutation("UserPushSubscriptionController.createUserPushSubscription");
+
+  async function enableNotifications() {
+    const permission = await Notification.requestPermission();
+
+    if (permission === "granted") {
+      const registration = await navigator.serviceWorker.ready;
+
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        const applicationServerKey = import.meta.env.VITE_PUSH_PUBLIC_KEY;
+        subscription = await registration.pushManager.subscribe({
+          applicationServerKey,
+          userVisibleOnly: true,
+        });
+      }
+
+      createUserPushSubscriptionMutation.mutate({
+        endpoint: subscription.endpoint,
+        p256Dh: arrayBufferToBase64Url(subscription.getKey("p256dh")!),
+        auth: arrayBufferToBase64Url(subscription.getKey("auth")!),
+      });
+    }
+  }
 
   async function shareProfile() {
-    await window.navigator.clipboard.writeText(`https://messenger.reilley.dev/u/${authUser.data.id}`);
+    await await window.navigator.clipboard.writeText(`https://messenger.reilley.dev/u/${authUser.id}`);
   }
 
   function exportPrivateKey() {
     const blob = new Blob([privateKeyBase64], { type: "text/plain;charset=utf-8" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "passkey.txt";
+    link.download = "messenger.privatekey";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -42,15 +67,19 @@ function Settings() {
 
       <div className="flex flex-col items-center space-y-3 px-6">
         <Avatar className="h-[92px] w-[92px] text-2xl">
-          <AvatarFallback>{authUser.data.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
+          <AvatarFallback>{authUser.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
         </Avatar>
 
         <h4 className="text-xl font-semibold tracking-tight">
-          {authUser.data.name}
+          {authUser.name}
         </h4>
       </div>
 
       <div className="flex flex-col">
+        <Button className="justify-start rounded-none" onClick={() => enableNotifications()} variant="ghost">
+          <BellPlus className="mr-2 h-4 w-4" /> Enable notifications
+        </Button>
+
         <Button className="justify-start rounded-none" onClick={() => shareProfile()} variant="ghost">
           <ShareIcon className="mr-2 h-4 w-4" /> Share profile
         </Button>

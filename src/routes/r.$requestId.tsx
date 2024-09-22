@@ -1,13 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  useMessageRequestRestControllerApiMutation,
-} from "~/hooks/useApiMutation.ts";
-import {
-  useMessageRequestRestControllerApiSuspenseQuery,
-} from "~/hooks/useApiSuspenseQuery.ts";
-import { Button } from "~/components/ui/button.tsx";
+import { Button } from "~/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import type { MessageRequestResponseDto } from "~/api";
+import { rspc } from "~/lib/utils";
+import { MessageRequestResponseDto } from "~/gen";
+import Loading from "~/components/Loading.tsx";
 
 export const Route = createFileRoute("/r/$requestId")({
   component: () => <Request />,
@@ -17,25 +13,26 @@ function Request() {
   const { requestId } = Route.useParams();
   const queryClient = useQueryClient();
 
-  const getMessageRequestQuery = useMessageRequestRestControllerApiSuspenseQuery({
-    queryKey: ["getMessageRequest", { requestId }],
-    queryFn: async (api) => await api.getMessageRequest({ messageRequestId: requestId }),
-  });
+  const getMessageRequestQuery = rspc.useQuery(["MessageRequestController.getMessageRequest", requestId]);
 
-  const approveMessageRequestMutation = useMessageRequestRestControllerApiMutation({
-    mutationFn: (api) => async () => await api.approveMessageRequest({ messageRequestId: requestId }),
-    onMutate: () => void queryClient.setQueryData(["MessageRequestRestControllerApi", "getMessageRequest", { requestId }], (oldData: MessageRequestResponseDto) => {
+  const approveMessageRequestMutation = rspc.useMutation("MessageRequestController.approveMessageRequest", {
+    onMutate: () => void queryClient.setQueryData(["MessageRequestController.getMessageRequest", requestId], (oldData: MessageRequestResponseDto) => {
       oldData.approvedAt = new Date().toISOString();
       return oldData;
     }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["MessageRequestRestControllerApi", "getMessageRequest", { requestId }] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["MessageRequestController.getMessageRequest", requestId] }),
   });
 
-  return (
-    <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
-      <Button disabled={!!getMessageRequestQuery.data.approvedAt} onClick={() => approveMessageRequestMutation.mutate()}>
-        {getMessageRequestQuery.data.approvedAt ? "Message request approved" : "Approve message request"}
-      </Button>
-    </div>
-  );
+  if (getMessageRequestQuery.isSuccess) {
+    return (
+      <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
+        <Button disabled={!!getMessageRequestQuery.data.approvedAt}
+                onClick={() => approveMessageRequestMutation.mutate(getMessageRequestQuery.data.id)}>
+          {getMessageRequestQuery.data.approvedAt ? "Message request approved" : "Approve message request"}
+        </Button>
+      </div>
+    );
+  }
+
+  return <Loading />;
 }
