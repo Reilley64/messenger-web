@@ -13,14 +13,14 @@ function Request() {
   const { requestId } = Route.useParams();
   const queryClient = useQueryClient();
 
-  const getMessageRequestQuery = rspc.useQuery(["MessageRequestController.getMessageRequest", requestId]);
+  const getMessageRequestQuery = rspc.useQuery(["messageRequests.getMessageRequest", requestId]);
 
-  const approveMessageRequestMutation = rspc.useMutation("MessageRequestController.approveMessageRequest", {
+  const approveMessageRequestMutation = rspc.useMutation("messageRequests.approveMessageRequest", {
     onMutate: () => void queryClient.setQueryData(["MessageRequestController.getMessageRequest", requestId], (oldData: MessageRequestResponseDto) => {
       oldData.approvedAt = new Date().toISOString();
       return oldData;
     }),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["MessageRequestController.getMessageRequest", requestId] }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["messageRequests.getMessageRequest", requestId] }),
   });
 
   if (getMessageRequestQuery.isSuccess) {

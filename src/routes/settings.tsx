@@ -17,7 +17,7 @@ function Settings() {
   const { authUser } = useAuthUserContext();
   const { privateKeyBase64 } = usePrivateKeyContext();
 
-  const createUserPushSubscriptionMutation = rspc.useMutation("UserPushSubscriptionController.createUserPushSubscription");
+  const createUserPushSubscriptionMutation = rspc.useMutation("userPushSubscriptions.createUserPushSubscription");
 
   async function enableNotifications() {
     try {

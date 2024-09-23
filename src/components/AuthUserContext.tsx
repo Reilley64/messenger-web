@@ -23,11 +23,11 @@ export default function AuthUserContextProvider(props: PropsWithChildren) {
 
   const queryClient = useQueryClient();
 
-  const getAuthUserQuery = rspc.useQuery(["AuthController.getAuthUser"], {
+  const getAuthUserQuery = rspc.useQuery(["auth.getAuthUser"], {
     retry: (failureCount, error) => failureCount < 3 && error.code !== 404,
   });
 
-  const createUserMutation = rspc.useMutation("UserController.createUser", {
+  const createUserMutation = rspc.useMutation("users.createUser", {
     onSuccess: (data) => queryClient.setQueryData(["getAuthUser"], data),
   });
 

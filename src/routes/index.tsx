@@ -15,7 +15,7 @@ function Home() {
   const { authUser } = useAuthUserContext();
   const { privateKeyBase64 } = usePrivateKeyContext();
 
-  const getLatestMessagesQuery = rspc.useQuery(["MessageController.getMessages"]);
+  const getLatestMessagesQuery = rspc.useQuery(["messages.getMessages"]);
   const getLatestMessagesDecryptedQuery = useQuery({
     queryKey: ["getLatestMessagesDecrypted"],
     queryFn: async () => {

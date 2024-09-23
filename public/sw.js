@@ -44,22 +44,18 @@ self.addEventListener("message", async (event) => {
   privateKeyBase64 = event.data;
 });
 
-self.addEventListener("push", (event) => {
-  console.log(privateKeyBase64);
+self.addEventListener("push", async (event) => {
   if (!privateKeyBase64) return;
 
   const message = event.data ? event.data.json() : null;
   if (!message) return;
 
-  console.log("message", message);
+  const body = await decryptMessage(privateKeyBase64, message.content);
 
-  decryptMessage(privateKeyBase64, message.content)
-    .then((body) => {
-      console.log("body", body);
-
-      event.waitUntil(
-        self.registration.showNotification(message.source.name, { body })
-      );
+  event.waitUntil(
+    self.registration.showNotification(message.source.name, {
+      body,
+      tag: message.id,
     })
-    .catch((error) => console.error(error));
+  );
 })

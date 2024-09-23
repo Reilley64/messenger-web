@@ -2,19 +2,20 @@
 
 export type Procedures = {
     queries:
-      { key: "AuthController.getAuthUser", input: never, result: UserResponseDto } |
-      { key: "GroupController.getGroup", input: string, result: GroupResponseDto } |
-      { key: "GroupController.getGroupMessages", input: string, result: MessageResponseDto[] } |
-      { key: "MessageController.getMessages", input: never, result: MessageWithGroupResponseDto[] } |
-      { key: "MessageRequestController.getMessageRequest", input: string, result: MessageRequestResponseDto } |
-      { key: "UserController.getUser", input: string, result: UserResponseDto } |
+      { key: "auth.getAuthUser", input: never, result: UserResponseDto } |
+      { key: "groups.getGroup", input: string, result: GroupResponseDto } |
+      { key: "groups.getGroupMessages", input: string, result: MessageResponseDto[] } |
+      { key: "messageRequests.getMessageRequest", input: string, result: MessageRequestResponseDto } |
+      { key: "messages.getMessages", input: never, result: MessageWithGroupResponseDto[] } |
+      { key: "users.getUser", input: string, result: UserResponseDto } |
       { key: "version", input: never, result: string },
     mutations:
-      { key: "GroupController.createGroupMessage", input: [string, MessageRequestDto], result: MessageResponseDto } |
-      { key: "MessageRequestController.approveMessageRequest", input: string, result: MessageRequestResponseDto } |
-      { key: "MessageRequestController.createMessageRequest", input: MessageRequestRequestDto, result: MessageRequestResponseDto } |
-      { key: "UserController.createUser", input: UserRequestDto, result: UserResponseDto } |
-      { key: "UserPushSubscriptionController.createUserPushSubscription", input: UserPushSubscriptionRequestDto, result: UserPushSubscriptionResponseDto },
+      { key: "groups.createGroupMessage", input: [string, MessageRequestDto], result: MessageResponseDto } |
+      { key: "messageRequests.approveMessageRequest", input: string, result: MessageRequestResponseDto } |
+      { key: "messageRequests.createMessageRequest", input: MessageRequestRequestDto, result: MessageRequestResponseDto } |
+      { key: "userPushSubscriptions.createUserPushSubscription", input: UserPushSubscriptionRequestDto, result: UserPushSubscriptionResponseDto } |
+      { key: "users.createUser", input: UserRequestDto, result: UserResponseDto } |
+      { key: "users.createUserProfilePicturePresignedUploadUrl", input: never, result: string },
     subscriptions: never
 };
 

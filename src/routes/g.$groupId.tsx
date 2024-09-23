@@ -33,8 +33,8 @@ function Group() {
     }
   }, [messageStartRef.current]);
 
-  const getGroupQuery = rspc.useQuery(["GroupController.getGroup", groupId]);
-  const getGroupMessagesQuery = rspc.useQuery(["GroupController.getGroupMessages", groupId]);
+  const getGroupQuery = rspc.useQuery(["groups.getGroup", groupId]);
+  const getGroupMessagesQuery = rspc.useQuery(["groups.getGroupMessages", groupId]);
   const getGroupMessagesDecryptedQuery = useQuery({
     queryKey: ["getGroupMessagesDecrypted", getGroupMessagesQuery.data],
     queryFn: async () => {
@@ -55,7 +55,7 @@ function Group() {
     }
   }, [getGroupMessagesDecryptedQuery.isSuccess, getGroupMessagesDecryptedQuery.data]);
 
-  const createGroupMessageMutation = rspc.useMutation("GroupController.createGroupMessage", {
+  const createGroupMessageMutation = rspc.useMutation("groups.createGroupMessage", {
     onMutate: async ([, messageRequest]) => {
       createMessageForm.reset();
 
@@ -67,7 +67,7 @@ function Group() {
         idempotencyKey: messageRequest.idempotencyKey
       };
 
-      void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: Array<MessageResponseDto>) => {
+      void queryClient.setQueryData(["groups.getGroupMessages", groupId], (oldData: Array<MessageResponseDto>) => {
         if (!oldData) return oldData;
 
         if (oldData.some((oldMessage) => oldMessage.idempotencyKey === message.idempotencyKey)) {
@@ -83,7 +83,7 @@ function Group() {
         ];
       });
     },
-    onSuccess: (_data, [groupId]) => queryClient.invalidateQueries({ queryKey: ["GroupController.getGroupMessages", groupId] }),
+    onSuccess: (_data, [groupId]) => queryClient.invalidateQueries({ queryKey: ["groups.getGroupMessages", groupId] }),
   });
 
   const createMessageForm = useForm({
