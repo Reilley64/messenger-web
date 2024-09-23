@@ -1,5 +1,6 @@
 import { precacheAndRoute } from "workbox-precaching";
 import { clientsClaim } from "workbox-core";
+import * as event from "workbox-core/_private.js";
 
 self.skipWaiting();
 clientsClaim();
@@ -55,10 +56,20 @@ self.addEventListener("push", (event) => {
       event.waitUntil(
         self.registration.showNotification(message.source.name, {
           body,
+          data: {
+            url: `https://messenger.reilley.dev/g/${message.group.id}`,
+          },
           image: `https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${message.source.id}`,
           tag: message.id,
         })
       );
     })
     .catch((error) => console.error(error));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url)
+  );
 });
