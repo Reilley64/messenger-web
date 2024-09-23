@@ -45,6 +45,7 @@ self.addEventListener("message", async (event) => {
 });
 
 self.addEventListener("push", (event) => {
+  console.log(privateKeyBase64);
   if (!privateKeyBase64) return;
 
   const message = event.data ? event.data.json() : null;
@@ -59,5 +60,6 @@ self.addEventListener("push", (event) => {
       event.waitUntil(
         self.registration.showNotification(message.source.name, { body })
       );
-    });
+    })
+    .catch((error) => console.error(error));
 })
