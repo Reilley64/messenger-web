@@ -13,7 +13,7 @@ async function decryptMessage(privateKeyBase64, messageBase64) {
     privateKeyBytes[i] = privateKeyBinaryString.charCodeAt(i);
   }
   const privateKeyBuffer = privateKeyBytes.buffer;
-  const privateKey = await window.crypto.subtle.importKey(
+  const privateKey = await self.crypto.subtle.importKey(
     "pkcs8",
     privateKeyBuffer,
     {
@@ -28,7 +28,7 @@ async function decryptMessage(privateKeyBase64, messageBase64) {
   for (let i = 0; i < messageBytes.length; i++) {
     messageBytes[i] = messageBinaryString.charCodeAt(i);
   }
-  const messageDecryptedBuffer = await window.crypto.subtle.decrypt(
+  const messageDecryptedBuffer = await self.crypto.subtle.decrypt(
     {
       name: "RSA-OAEP",
     },
