@@ -6,14 +6,15 @@ import { useAuthUserContext } from "~/components/AuthUserContext";
 import Loading from "~/components/Loading";
 import { useQuery } from "@tanstack/react-query";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext.tsx";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar.tsx";
 
 export const Route = createFileRoute("/")({
-  component: () => <Home />,
+  component: () => <Home/>,
 });
 
 function Home() {
-  const { authUser } = useAuthUserContext();
-  const { privateKeyBase64 } = usePrivateKeyContext();
+  const {authUser} = useAuthUserContext();
+  const {privateKeyBase64} = usePrivateKeyContext();
 
   const getLatestMessagesQuery = rspc.useQuery(["messages.getMessages"]);
   const getLatestMessagesDecryptedQuery = useQuery({
@@ -43,20 +44,34 @@ function Home() {
         </div>
 
         <div className="space-y-3">
-          {getLatestMessagesDecryptedQuery.data.map((message) => (
-            <Link key={message.id} to={`/g/${message.group.id}`}>
-              <h4 className="text-lg font-semibold tracking-tight">
-                {message.group.name.replace(authUser.name, "").replace(", ", "")}
-              </h4>
-              <p className="text-muted-foreground">
-                {message.content}
-              </p>
-            </Link>
-          ))}
+          {getLatestMessagesDecryptedQuery.data.map((message) => {
+            const userId = message.group.users.filter((u) => u.id !== authUser.id).pop()?.id;
+            const userName = message.group.users.filter((u) => u.id !== authUser.id).pop()?.name;
+
+            return (
+              <Link key={message.id} className="flex space-x-2 items-center" to={`/g/${message.group.id}`}>
+                <Avatar>
+                  <AvatarImage
+                    src={`https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${userId}`}/>
+                  <AvatarFallback>{userName!.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
+                </Avatar>
+
+                <div className="flex flex-col">
+                  <h4 className="text-lg font-semibold tracking-tight">
+                    {message.group.name.replace(authUser.name, "").replace(", ", "")}
+                  </h4>
+                  <p className="text-muted-foreground">
+                    {message.content}
+                  </p>
+                </div>
+
+              </Link>
+            )
+          })}
         </div>
       </div>
     );
   }
 
-  return <Loading />;
+  return <Loading/>;
 }

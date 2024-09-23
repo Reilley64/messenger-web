@@ -3,7 +3,7 @@ import { ChevronLeftIcon } from "lucide-react";
 import { Input } from "~/components/ui/input";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { cn, decryptMessage, encryptMessage, rspc } from "~/lib/utils";
-import { Avatar, AvatarFallback } from "~/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useForm } from "@tanstack/react-form";
 import { useAuthUserContext } from "~/components/AuthUserContext";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
@@ -36,9 +36,9 @@ function Group() {
   const getGroupQuery = rspc.useQuery(["groups.getGroup", groupId]);
   const getGroupMessagesQuery = rspc.useQuery(["groups.getGroupMessages", groupId]);
   const getGroupMessagesDecryptedQuery = useQuery({
-    queryKey: ["getGroupMessagesDecrypted", getGroupMessagesQuery.data],
+    queryKey: ["getGroupMessagesDecrypted", btoa(JSON.stringify(getGroupMessagesQuery.data))],
     queryFn: async () => {
-      return await Promise.all(getGroupMessagesQuery.data.map(async (message) => ({
+      return await Promise.all(getGroupMessagesQuery.data!.map(async (message) => ({
         ...message,
         content: await decryptMessage(privateKeyBase64, message.content),
       })));
@@ -151,7 +151,7 @@ function Group() {
           </Link>
 
           <h4 className="text-xl font-semibold tracking-tight">
-            {getGroupQuery.data.name}
+            {getGroupQuery.data.name.replace(authUser.name, "").replace(", ", "")}
           </h4>
         </div>
 
@@ -166,6 +166,7 @@ function Group() {
               >
                 {message.source.id !== authUser.id && (
                   <Avatar>
+                    <AvatarImage src={`https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${message.source.id}`} />
                     <AvatarFallback>{message.source.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
                   </Avatar>
                 )}

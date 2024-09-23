@@ -20,7 +20,7 @@ function RspcProvider(props: PropsWithChildren) {
   const queryClient = useQueryClient();
 
   const client = createClient<Procedures>({
-    transport: new FetchTransport("https://api.messenger.reilley.dev/rspc", async (input, init) => {
+    transport: new FetchTransport("http://localhost:3000/rspc", async (input, init) => {
       const accessToken = await getAccessToken();
 
       if (accessToken) {

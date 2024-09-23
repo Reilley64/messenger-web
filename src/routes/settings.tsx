@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { BellPlus, ChevronLeftIcon, FileKeyIcon, LogOutIcon, ShareIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { Avatar, AvatarFallback } from "~/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { arrayBufferToBase64Url, rspc, urlB64ToUint8Array } from "~/lib/utils";
 import { useAuthUserContext } from "~/components/AuthUserContext";
 import { toast } from "sonner";
+import { useRef } from "react";
 
 export const Route = createFileRoute("/settings")({
   component: () => <Settings />,
@@ -16,6 +17,15 @@ function Settings() {
   const { logout } = useAuthorizationContext();
   const { authUser } = useAuthUserContext();
   const { privateKeyBase64 } = usePrivateKeyContext();
+
+  const profilePictureFileInputRef = useRef<HTMLInputElement>(null);
+
+  const createUserProfilePicturePresignedUploadUrlMutation = rspc.useMutation("users.createUserProfilePicturePresignedUploadUrl");
+
+  async function uploadProfilePicture(profilePicture: File) {
+    const presignedUrl = await createUserProfilePicturePresignedUploadUrlMutation.mutateAsync({ contentType: profilePicture.type });
+    await fetch(presignedUrl.url, { mode: "cors", method: "PUT", body: profilePicture, headers: { "Content-Type": profilePicture.type } });
+  }
 
   const createUserPushSubscriptionMutation = rspc.useMutation("userPushSubscriptions.createUserPushSubscription");
 
@@ -71,9 +81,24 @@ function Settings() {
       </div>
 
       <div className="flex flex-col items-center space-y-3 px-6">
-        <Avatar className="h-[92px] w-[92px] text-2xl">
-          <AvatarFallback>{authUser.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
-        </Avatar>
+        <div>
+          <Avatar className="cursor h-[92px] w-[92px] select-none text-2xl" onClick={() => profilePictureFileInputRef.current?.click()}>
+            <AvatarImage src={`https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${authUser.id}`} />
+            <AvatarFallback>{authUser.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
+          </Avatar>
+
+          <input
+            ref={profilePictureFileInputRef}
+            hidden={true}
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                void uploadProfilePicture(e.target.files[0]);
+              }
+            }}
+            type="file"
+          />
+        </div>
+
 
         <h4 className="text-xl font-semibold tracking-tight">
           {authUser.name}

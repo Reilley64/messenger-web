@@ -15,7 +15,7 @@ export type Procedures = {
       { key: "messageRequests.createMessageRequest", input: MessageRequestRequestDto, result: MessageRequestResponseDto } |
       { key: "userPushSubscriptions.createUserPushSubscription", input: UserPushSubscriptionRequestDto, result: UserPushSubscriptionResponseDto } |
       { key: "users.createUser", input: UserRequestDto, result: UserResponseDto } |
-      { key: "users.createUserProfilePicturePresignedUploadUrl", input: never, result: string },
+      { key: "users.createUserProfilePicturePresignedUploadUrl", input: PresignedUploadUrlRequestDto, result: PresignedUploadUrlResponseDto },
     subscriptions: never
 };
 
@@ -23,7 +23,11 @@ export type MessageWithGroupResponseDto = { id: string; createdAt: string; updat
 
 export type MessageRequestRequestDto = { destinationId: string }
 
+export type PresignedUploadUrlRequestDto = { contentType: string }
+
 export type GroupResponseDto = { id: string; createdAt: string; updatedAt: string; name: string; messageRequestId: string | null; users: UserResponseDto[] }
+
+export type PresignedUploadUrlResponseDto = { url: string }
 
 export type MessageResponseDto = { id: string; createdAt: string; updatedAt: string; source: UserResponseDto; content: string; idempotencyKey: string | null }
 
