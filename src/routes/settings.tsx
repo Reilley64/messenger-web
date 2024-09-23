@@ -6,6 +6,7 @@ import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { arrayBufferToBase64Url, rspc } from "~/lib/utils";
 import { useAuthUserContext } from "~/components/AuthUserContext";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
   component: () => <Settings />,
@@ -19,25 +20,29 @@ function Settings() {
   const createUserPushSubscriptionMutation = rspc.useMutation("UserPushSubscriptionController.createUserPushSubscription");
 
   async function enableNotifications() {
-    const permission = await Notification.requestPermission();
+    try {
+      const permission = await Notification.requestPermission();
 
-    if (permission === "granted") {
-      const registration = await navigator.serviceWorker.ready;
+      if (permission === "granted") {
+        const registration = await navigator.serviceWorker.ready;
 
-      let subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        const applicationServerKey = import.meta.env.VITE_PUSH_PUBLIC_KEY;
-        subscription = await registration.pushManager.subscribe({
-          applicationServerKey,
-          userVisibleOnly: true,
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          const applicationServerKey = import.meta.env.VITE_PUSH_PUBLIC_KEY;
+          subscription = await registration.pushManager.subscribe({
+            applicationServerKey,
+            userVisibleOnly: true,
+          });
+        }
+
+        await createUserPushSubscriptionMutation.mutateAsync({
+          endpoint: subscription.endpoint,
+          p256dh: arrayBufferToBase64Url(subscription.getKey("p256dh")!),
+          auth: arrayBufferToBase64Url(subscription.getKey("auth")!),
         });
       }
-
-      createUserPushSubscriptionMutation.mutate({
-        endpoint: subscription.endpoint,
-        p256dh: arrayBufferToBase64Url(subscription.getKey("p256dh")!),
-        auth: arrayBufferToBase64Url(subscription.getKey("auth")!),
-      });
+    } catch (error) {
+      toast.error(JSON.stringify(error))
     }
   }
 
