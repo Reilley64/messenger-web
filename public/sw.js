@@ -40,22 +40,24 @@ async function decryptMessage(privateKeyBase64, messageBase64) {
 
 let privateKeyBase64;
 
-self.addEventListener("message", async (event) => {
+self.addEventListener("message", (event) => {
   privateKeyBase64 = event.data;
 });
 
-self.addEventListener("push", async (event) => {
+self.addEventListener("push", (event) => {
   if (!privateKeyBase64) return;
 
   const message = event.data ? event.data.json() : null;
   if (!message) return;
 
-  const body = await decryptMessage(privateKeyBase64, message.content);
-
-  event.waitUntil(
-    self.registration.showNotification(message.source.name, {
-      body,
-      tag: message.id,
+  decryptMessage(privateKeyBase64, message.content)
+    .then((body) => {
+      event.waitUntil(
+        self.registration.showNotification(message.source.name, {
+          body,
+          tag: message.id,
+        })
+      );
     })
-  );
-})
+    .catch((error) => console.error(error));
+});
