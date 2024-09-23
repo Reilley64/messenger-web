@@ -1,4 +1,4 @@
-import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext } from "react";
+import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect } from "react";
 import useLocalStorageState from "~/hooks/useLocalStorageState";
 import { useAuthUserContext } from "~/components/AuthUserContext.tsx";
 
@@ -23,6 +23,17 @@ export default function PrivateKeyContextProvider(props: PropsWithChildren) {
   const { authUser } = useAuthUserContext();
 
   const [privateKeyBase64, setPrivateKeyBase64] = useLocalStorageState<string | undefined>(`${authUser.id}.privateKeyBase64`, undefined);
+
+  useEffect(() => {
+    async function sendPrivateKeyBase64ToServiceWorker() {
+      console.log(privateKeyBase64);
+      const registration = await navigator.serviceWorker.ready;
+      if (!registration.active) return;
+      registration.active.postMessage(privateKeyBase64);
+    }
+
+    if (privateKeyBase64) void sendPrivateKeyBase64ToServiceWorker();
+  }, [privateKeyBase64]);
 
   if (!privateKeyBase64) {
     return "No private key";

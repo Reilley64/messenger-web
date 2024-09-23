@@ -30,9 +30,9 @@ export type UserRequestDto = { publicKey: string }
 
 export type MessageRequestDto = { content: { [key: string]: string }; idempotencyKey: string | null }
 
-export type UserPushSubscriptionResponseDto = { id: string; createdAt: string; updatedAt: string; userId: string; endpoint: string; p256Dh: string; auth: string }
+export type UserPushSubscriptionResponseDto = { id: string; createdAt: string; updatedAt: string; userId: string; endpoint: string; p256dh: string; auth: string }
 
-export type UserPushSubscriptionRequestDto = { endpoint: string; p256Dh: string; auth: string }
+export type UserPushSubscriptionRequestDto = { endpoint: string; p256dh: string; auth: string }
 
 export type UserResponseDto = { id: string; createdAt: string; updatedAt: string; name: string; publicKey: string }
 

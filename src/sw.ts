@@ -1,5 +1,5 @@
 import { precacheAndRoute } from "workbox-precaching";
-import { MessageWithGroupResponseDto } from "~/gen.ts";
+import type { MessageWithGroupResponseDto } from "~/gen";
 
 interface ExtendableEvent extends Event {
   waitUntil(fn: Promise<unknown>): void;
@@ -22,17 +22,56 @@ declare let self: ServiceWorkerGlobalScope & {
 
 precacheAndRoute(self.__WB_MANIFEST);
 
-// @ts-expect-error needed for pwa
-self.addEventListener("push", (event: PushEvent) => {
-  console.log(event);
+async function decryptMessage(privateKeyBase64: string, messageBase64: string) {
+  const privateKeyBinaryString = atob(privateKeyBase64!);
+  const privateKeyBytes = new Uint8Array(privateKeyBinaryString.length);
+  for (let i = 0; i < privateKeyBinaryString.length; i++) {
+    privateKeyBytes[i] = privateKeyBinaryString.charCodeAt(i);
+  }
+  const privateKeyBuffer = privateKeyBytes.buffer as ArrayBuffer;
+  const privateKey = await window.crypto.subtle.importKey(
+    "pkcs8",
+    privateKeyBuffer,
+    {
+      name: "RSA-OAEP",
+      hash: { name: "SHA-256" },
+    },
+    true,
+    ["decrypt"],
+  );
+  const messageBinaryString = atob(messageBase64);
+  const messageBytes = new Uint8Array(messageBinaryString.length);
+  for (let i = 0; i < messageBytes.length; i++) {
+    messageBytes[i] = messageBinaryString.charCodeAt(i);
+  }
+  const messageDecryptedBuffer = await window.crypto.subtle.decrypt(
+    {
+      name: "RSA-OAEP",
+    },
+    privateKey,
+    messageBytes.buffer as ArrayBuffer,
+  );
+  return new TextDecoder("UTF-8").decode(messageDecryptedBuffer);
+}
 
-  const payload: MessageWithGroupResponseDto = event.data ? JSON.parse(event.data.text()) : null;
-  if (!payload) return;
+let privateKeyBase64: string | undefined;
+
+// @ts-expect-error needed for pwa
+self.addEventListener("message", async (event: MessageEvent) => {
+  privateKeyBase64 = event.data;
+});
+
+// @ts-expect-error needed for pwa
+self.addEventListener("push", async (event: PushEvent) => {
+  if (!privateKeyBase64) return;
+
+  const message = event.data ? event.data.json() as MessageWithGroupResponseDto : null;
+  if (!message) return;
+
+  const body = await decryptMessage(privateKeyBase64, message.content);
 
   event.waitUntil(
     // @ts-expect-error needed for pwa
-    self.registration.showNotification(payload.source.name, {
-      body: payload,
-    })
+    self.registration.showNotification(message.source.name, { body })
   );
 })

@@ -35,7 +35,7 @@ function Settings() {
 
       createUserPushSubscriptionMutation.mutate({
         endpoint: subscription.endpoint,
-        p256Dh: arrayBufferToBase64Url(subscription.getKey("p256dh")!),
+        p256dh: arrayBufferToBase64Url(subscription.getKey("p256dh")!),
         auth: arrayBufferToBase64Url(subscription.getKey("auth")!),
       });
     }
