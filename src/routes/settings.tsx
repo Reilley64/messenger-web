@@ -4,7 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
-import { arrayBufferToBase64Url, rspc } from "~/lib/utils";
+import { arrayBufferToBase64Url, rspc, urlB64ToUint8Array } from "~/lib/utils";
 import { useAuthUserContext } from "~/components/AuthUserContext";
 import { toast } from "sonner";
 
@@ -30,7 +30,7 @@ function Settings() {
         if (!subscription) {
           const pushPublicKey = import.meta.env.VITE_PUSH_PUBLIC_KEY;
           subscription = await registration.pushManager.subscribe({
-            applicationServerKey: new Uint8Array(atob(pushPublicKey).split("").map(char => char.charCodeAt(0))),
+            applicationServerKey: urlB64ToUint8Array(pushPublicKey),
             userVisibleOnly: true,
           });
         }
