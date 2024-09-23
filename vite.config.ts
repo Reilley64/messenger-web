@@ -11,8 +11,7 @@ export default defineConfig({
     react(),
     VitePWA({
       strategies: "injectManifest",
-      srcDir: "src",
-      filename: "sw.ts",
+      registerType: "autoUpdate",
       manifest: {
         name: "Messenger",
         short_name: "Messenger",

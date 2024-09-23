@@ -28,9 +28,9 @@ function Settings() {
 
         let subscription = await registration.pushManager.getSubscription();
         if (!subscription) {
-          const applicationServerKey = import.meta.env.VITE_PUSH_PUBLIC_KEY;
+          const pushPublicKey = import.meta.env.VITE_PUSH_PUBLIC_KEY;
           subscription = await registration.pushManager.subscribe({
-            applicationServerKey,
+            applicationServerKey: new Uint8Array(atob(pushPublicKey).split("").map(char => char.charCodeAt(0))),
             userVisibleOnly: true,
           });
         }
@@ -81,12 +81,7 @@ function Settings() {
       </div>
 
       <div className="flex flex-col">
-        <Button
-          className="justify-start rounded-none"
-          onClick={() => enableNotifications()}
-          onTouchStart={() => enableNotifications()}
-          variant="ghost"
-        >
+        <Button className="justify-start rounded-none" onClick={() => enableNotifications()} variant="ghost">
           <BellPlus className="mr-2 h-4 w-4" /> Enable notifications
         </Button>
 
