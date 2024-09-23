@@ -26,7 +26,6 @@ export default function PrivateKeyContextProvider(props: PropsWithChildren) {
 
   useEffect(() => {
     async function sendPrivateKeyBase64ToServiceWorker() {
-      console.log(privateKeyBase64);
       const registration = await navigator.serviceWorker.ready;
       if (!registration.active) return;
       registration.active.postMessage(privateKeyBase64);

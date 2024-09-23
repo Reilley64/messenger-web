@@ -76,7 +76,12 @@ function Settings() {
       </div>
 
       <div className="flex flex-col">
-        <Button className="justify-start rounded-none" onClick={() => enableNotifications()} variant="ghost">
+        <Button
+          className="justify-start rounded-none"
+          onClick={() => enableNotifications()}
+          onTouchStart={() => enableNotifications()}
+          variant="ghost"
+        >
           <BellPlus className="mr-2 h-4 w-4" /> Enable notifications
         </Button>
 
