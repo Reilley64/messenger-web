@@ -55,6 +55,7 @@ self.addEventListener("push", (event) => {
       event.waitUntil(
         self.registration.showNotification(message.source.name, {
           body,
+          image: `https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${message.source.id}`,
           tag: message.id,
         })
       );
