@@ -12,8 +12,8 @@ function User() {
   const { authUser } = useAuthUserContext();
   const { userId } = Route.useParams();
 
-  const getUserQuery = rspc.useQuery(["UserController.getUser", userId]);
-  const createMessageRequestMutation = rspc.useMutation("MessageRequestController.createMessageRequest");
+  const getUserQuery = rspc.useQuery(["users.getUser", userId]);
+  const createMessageRequestMutation = rspc.useMutation("messageRequests.createMessageRequest");
 
   if (getUserQuery.isSuccess) {
     return (
