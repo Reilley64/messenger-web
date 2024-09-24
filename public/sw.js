@@ -59,7 +59,7 @@ self.addEventListener("push", (event) => {
           data: {
             url: `https://messenger.reilley.dev/g/${message.group.id}`,
           },
-          image: `https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${message.source.id}`,
+          icon: `https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${message.source.id}`,
           tag: message.id,
         })
       );

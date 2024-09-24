@@ -8,11 +8,12 @@ import { useForm } from "@tanstack/react-form";
 import { useAuthUserContext } from "~/components/AuthUserContext";
 import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
 import { v4 as uuid } from "uuid";
 import Loading from "~/components/Loading";
 import { MessageResponseDto } from "~/gen.ts";
+import { Skeleton } from "~/components/ui/skeleton.tsx";
 
 export const Route = createFileRoute("/g/$groupId")({
   component: () => <Group />,
@@ -35,25 +36,30 @@ function Group() {
 
   const getGroupQuery = rspc.useQuery(["groups.getGroup", groupId]);
   const getGroupMessagesQuery = rspc.useQuery(["groups.getGroupMessages", groupId]);
-  const getGroupMessagesDecryptedQuery = useQuery({
-    queryKey: ["getGroupMessagesDecrypted", btoa(JSON.stringify(getGroupMessagesQuery.data))],
-    queryFn: async () => {
-      return await Promise.all(getGroupMessagesQuery.data!.map(async (message) => ({
-        ...message,
-        content: await decryptMessage(privateKeyBase64, message.content),
-      })));
-    },
-    enabled: getGroupMessagesQuery.isSuccess,
-  });
+
+  const [decrypedMessages, setDecrypedMessages] = useState<Array<MessageResponseDto>>();
 
   useEffect(() => {
-    if (getGroupMessagesDecryptedQuery.isSuccess
-      && getGroupMessagesDecryptedQuery.data.length > 1
-      && getGroupMessagesDecryptedQuery.data[getGroupMessagesDecryptedQuery.data.length - 1].source.id === authUser.id
+    async function decryptMessages() {
+      setDecrypedMessages(
+        await Promise.all(getGroupMessagesQuery.data!.map(async (message) => ({
+          ...message,
+          content: await decryptMessage(privateKeyBase64, message.content),
+        })))
+      );
+    }
+
+    if (getGroupMessagesQuery.isSuccess) void decryptMessages();
+  }, [getGroupMessagesQuery.isSuccess, getGroupMessagesQuery.data]);
+
+  useEffect(() => {
+    if (getGroupMessagesQuery.isSuccess
+      && getGroupMessagesQuery.data.length > 1
+      && getGroupMessagesQuery.data[getGroupMessagesQuery.data.length - 1].source.id === authUser.id
       && messageStartRef.current) {
       messageStartRef.current.scrollIntoView();
     }
-  }, [getGroupMessagesDecryptedQuery.isSuccess, getGroupMessagesDecryptedQuery.data]);
+  }, [getGroupMessagesQuery.isSuccess, getGroupMessagesQuery.data]);
 
   const createGroupMessageMutation = rspc.useMutation("groups.createGroupMessage", {
     onMutate: async ([, messageRequest]) => {
@@ -83,7 +89,6 @@ function Group() {
         ];
       });
     },
-    onSuccess: (_data, [groupId]) => queryClient.invalidateQueries({ queryKey: ["groups.getGroupMessages", groupId] }),
   });
 
   const createMessageForm = useForm({
@@ -111,36 +116,7 @@ function Group() {
     void loadToken();
   }, [token]);
 
-  // useWebSocket(`ws://api.messenger.reilley.dev/ws/notifications?token=${token}`, {
-  //   onMessage: async (event) => {
-  //     const message = MessageResponseDtoFromJSON(JSON.parse(event.data));
-  //     message.content = await decryptMessage(privateKeyBase64, message.content);
-  //
-  //     void queryClient.setQueryData(["GroupRestControllerApi", "getGroupMessages", { groupId }], (oldData: PagedModelMessageResponseDto) => {
-  //       if (!oldData || !oldData.content) return oldData;
-  //
-  //       if (oldData.content.some((oldMessage) => oldMessage.id === message.id)) {
-  //         return {
-  //           ...oldData,
-  //           content: oldData.content.map((oldMessage) => {
-  //             if (oldMessage.id !== message.id) return oldMessage;
-  //             return { ...oldMessage, content: message.content };
-  //           }),
-  //         };
-  //       }
-  //
-  //       return {
-  //         ...oldData,
-  //         content: [
-  //           message,
-  //           ...oldData.content,
-  //         ],
-  //       };
-  //     });
-  //   },
-  // });
-
-  if (getGroupMessagesDecryptedQuery.isSuccess) {
+  if (getGroupQuery.isSuccess) {
     return (
       <div className="flex h-[calc(100dvh)] w-screen flex-col justify-center font-[Geist]">
         <div className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-4">
@@ -158,11 +134,23 @@ function Group() {
         <div className="flex flex-grow flex-col-reverse overflow-y-scroll px-6">
           <div ref={messageStartRef}/>
 
-          {getGroupMessagesDecryptedQuery.data
-            && getGroupMessagesDecryptedQuery.data.map((message) => (
-              <div
-                key={message.idempotencyKey}
-                className={cn("items-end flex gap-x-1.5 mb-3", message.source.id === authUser.id ? "flex-row-reverse" : "flex-row")}
+          {!getGroupMessagesQuery.isSuccess && (
+            <Skeleton className="flex-grow" />
+          )}
+
+          {getGroupMessagesQuery.isSuccess && !decrypedMessages && getGroupMessagesQuery.data.map((message) => (
+            <div
+              key={message.idempotencyKey}
+              className={cn("items-end flex gap-x-1.5 mb-3", message.source.id === authUser.id ? "flex-row-reverse" : "flex-row")}
+            >
+              <Skeleton key={message.idempotencyKey} className="h-[68px] w-full max-w-[75%]"/>
+            </div>
+          ))}
+
+          {getGroupMessagesQuery.isSuccess && decrypedMessages && decrypedMessages.map((message) => (
+            <div
+              key={message.idempotencyKey}
+              className={cn("items-end flex gap-x-1.5 mb-3", message.source.id === authUser.id ? "flex-row-reverse" : "flex-row")}
               >
                 {message.source.id !== authUser.id && (
                   <Avatar>
