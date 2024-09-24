@@ -49,7 +49,7 @@ function Home() {
             const userName = message.group.users.filter((u) => u.id !== authUser.id).pop()?.name;
 
             return (
-              <Link key={message.id} className="flex space-x-2 items-center" to={`/g/${message.group.id}`}>
+              <Link key={message.id} className="flex items-center space-x-2" to={`/g/${message.group.id}`}>
                 <Avatar>
                   <AvatarImage
                     src={`https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${userId}`}/>

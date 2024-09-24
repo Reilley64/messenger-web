@@ -148,7 +148,7 @@ export default function AuthorizationContextProvider(props: PropsWithChildren) {
   if (!authentication && !refreshToken) {
     if (initiateAuthMutation.isSuccess && initiateAuthMutation.data.ChallengeName === ChallengeNameType.NEW_PASSWORD_REQUIRED) {
       return (
-        <div className="flex h-[calc(100dvh)] w-screen flex-col justify-center font-[Geist]">
+        <div className="fixed inset-0 flex w-screen flex-col justify-center font-[Geist]">
           <form
             className="mx-auto flex w-full max-w-sm flex-col space-y-6 p-6"
             onSubmit={(e) => {
@@ -194,7 +194,7 @@ export default function AuthorizationContextProvider(props: PropsWithChildren) {
     }
 
     return (
-      <div className="flex h-[calc(100dvh)] w-screen flex-col justify-center font-[Geist]">
+      <div className="fixed inset-0 flex w-screen flex-col justify-center font-[Geist]">
         <form
           className="mx-auto flex w-full max-w-sm flex-col space-y-6 p-6"
           onSubmit={(e) => {

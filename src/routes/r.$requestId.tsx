@@ -25,7 +25,7 @@ function Request() {
 
   if (getMessageRequestQuery.isSuccess) {
     return (
-      <div className="flex h-[calc(100dvh)] w-screen flex-col justify-center font-[Geist]">
+      <div className="fixed inset-0 flex w-screen flex-col justify-center font-[Geist]">
         <Button disabled={!!getMessageRequestQuery.data.approvedAt}
                 onClick={() => approveMessageRequestMutation.mutate(getMessageRequestQuery.data.id)}>
           {getMessageRequestQuery.data.approvedAt ? "Message request approved" : "Approve message request"}
