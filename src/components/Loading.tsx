@@ -8,6 +8,9 @@ export default function Loading() {
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            style={{
+              animationDelay: `${-(new Date().getTime() % 1000)}ms`,
+            }}
           >
             <path
               strokeLinecap="round"
@@ -24,9 +27,14 @@ export default function Loading() {
           Loading your conversations...
         </p>
         <div className="mt-4">
-          <div className="mx-auto h-1 w-12 animate-pulse rounded-full bg-primary transition-colors duration-300"></div>
+          <div
+            className="mx-auto h-1 w-12 animate-pulse rounded-full bg-primary transition-colors duration-1000"
+            style={{
+              animationDelay: `${-(new Date().getTime() % 1000)}ms`,
+            }}
+          />
         </div>
       </div>
     </div>
-  )
+  );
 }
