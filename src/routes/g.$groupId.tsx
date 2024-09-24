@@ -142,7 +142,7 @@ function Group() {
 
   if (getGroupMessagesDecryptedQuery.isSuccess) {
     return (
-      <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
+      <div className="flex h-[calc(100dvh)] w-screen flex-col justify-center font-[Geist]">
         <div className="flex shrink-0 grow-0 basis-[64px] items-center space-x-3 px-4">
           <Link to="/">
             <Button size="icon" variant="ghost">

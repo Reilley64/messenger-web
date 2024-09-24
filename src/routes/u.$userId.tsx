@@ -17,7 +17,7 @@ function User() {
 
   if (getUserQuery.isSuccess) {
     return (
-      <div className="flex h-screen w-screen flex-col justify-center font-[Geist]">
+      <div className="flex h-[calc(100dvh)] w-screen flex-col justify-center font-[Geist]">
         {getUserQuery.data.id !== authUser.id && (
           <Button onClick={() => createMessageRequestMutation.mutate({destinationId: getUserQuery.data.id})}>
             Send message request

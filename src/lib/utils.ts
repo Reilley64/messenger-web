@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { createReactQueryHooks } from "@rspc/react-query";
 import { Procedures } from "~/gen.ts";
+import { createReactQueryHooks } from "~/lib/createReactQueryHooks";
 
 export const rspc = createReactQueryHooks<Procedures>();
 

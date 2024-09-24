@@ -48,6 +48,8 @@ Resources:
             Value: !Ref S3Bucket
           - Name: "VITE_PUSH_PUBLIC_KEY"
             Value: "BA9-y2cmDe7aQhlE72VaM-h4tABBa6bBeWj0PUQKP-qqVY8dpgo3ICrJyFnt-LJvJWSJvyR5o9hOtptJKccGIos"
+          - Name: "VITE_API_BASE_URL"
+            Value: "https://api.messenger.reilley.dev"
       ServiceRole: !Ref CodeBuildRole
       Source:
         Type: GITHUB

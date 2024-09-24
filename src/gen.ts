@@ -16,7 +16,8 @@ export type Procedures = {
       { key: "userPushSubscriptions.createUserPushSubscription", input: UserPushSubscriptionRequestDto, result: UserPushSubscriptionResponseDto } |
       { key: "users.createUser", input: UserRequestDto, result: UserResponseDto } |
       { key: "users.createUserProfilePicturePresignedUploadUrl", input: PresignedUploadUrlRequestDto, result: PresignedUploadUrlResponseDto },
-    subscriptions: never
+    subscriptions:
+      { key: "messages.subscribeToMessages", input: never, result: MessageWithGroupResponseDto | null }
 };
 
 export type MessageWithGroupResponseDto = { id: string; createdAt: string; updatedAt: string; group: GroupResponseDto; source: UserResponseDto; content: string; idempotencyKey: string | null }

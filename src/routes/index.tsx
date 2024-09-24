@@ -13,8 +13,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const {authUser} = useAuthUserContext();
-  const {privateKeyBase64} = usePrivateKeyContext();
+  const { authUser } = useAuthUserContext();
+  const { privateKeyBase64 } = usePrivateKeyContext();
 
   const getLatestMessagesQuery = rspc.useQuery(["messages.getMessages"]);
   const getLatestMessagesDecryptedQuery = useQuery({
