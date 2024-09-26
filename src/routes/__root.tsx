@@ -16,17 +16,17 @@ export const Route = createRootRoute({
 function RspcProvider(props: PropsWithChildren) {
   const { children } = props;
 
-  const { getAccessToken } = useAuthorizationContext();
+  const { user } = useAuthorizationContext();
 
   const [token, setToken] = useState<string>();
 
   useEffect(() => {
     async function getToken() {
-      setToken(await getAccessToken());
+      setToken(await user.getIdToken());
     }
 
     void getToken();
-  }, [getAccessToken]);
+  }, [user.getIdToken]);
 
   const queryClient = useQueryClient();
 

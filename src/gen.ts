@@ -20,26 +20,26 @@ export type Procedures = {
       { key: "messages.subscribeToMessages", input: never, result: MessageWithGroupResponseDto | null }
 };
 
-export type MessageWithGroupResponseDto = { id: string; createdAt: string; updatedAt: string; group: GroupResponseDto; source: UserResponseDto; content: string; idempotencyKey: string | null }
-
-export type MessageRequestRequestDto = { destinationId: string }
-
-export type PresignedUploadUrlRequestDto = { contentType: string }
-
-export type GroupResponseDto = { id: string; createdAt: string; updatedAt: string; name: string; messageRequestId: string | null; users: UserResponseDto[] }
+export type MessageRequestResponseDto = { id: string; createdAt: string; updatedAt: string; source: UserResponseDto; destination: UserResponseDto; approvedAt: string | null }
 
 export type PresignedUploadUrlResponseDto = { url: string }
 
-export type MessageResponseDto = { id: string; createdAt: string; updatedAt: string; source: UserResponseDto; content: string; idempotencyKey: string | null }
-
-export type UserRequestDto = { publicKey: string }
+export type UserPushSubscriptionResponseDto = { id: string; createdAt: string; updatedAt: string; userId: string; endpoint: string; p256dh: string; auth: string }
 
 export type MessageRequestDto = { content: { [key: string]: string }; idempotencyKey: string | null }
 
-export type UserPushSubscriptionResponseDto = { id: string; createdAt: string; updatedAt: string; userId: string; endpoint: string; p256dh: string; auth: string }
+export type MessageResponseDto = { id: string; createdAt: string; updatedAt: string; source: UserResponseDto; content: string; idempotencyKey: string | null }
+
+export type GroupResponseDto = { id: string; createdAt: string; updatedAt: string; name: string; messageRequestId: string | null; users: UserResponseDto[] }
+
+export type MessageWithGroupResponseDto = { id: string; createdAt: string; updatedAt: string; group: GroupResponseDto; source: UserResponseDto; content: string; idempotencyKey: string | null }
+
+export type UserRequestDto = { email: string; firstName: string; lastName: string; publicKey: string }
+
+export type PresignedUploadUrlRequestDto = { contentType: string }
+
+export type MessageRequestRequestDto = { destinationId: string }
 
 export type UserPushSubscriptionRequestDto = { endpoint: string; p256dh: string; auth: string }
 
 export type UserResponseDto = { id: string; createdAt: string; updatedAt: string; name: string; publicKey: string }
-
-export type MessageRequestResponseDto = { id: string; createdAt: string; updatedAt: string; source: UserResponseDto; destination: UserResponseDto; approvedAt: string | null }

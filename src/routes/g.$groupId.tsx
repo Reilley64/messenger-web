@@ -6,7 +6,6 @@ import { cn, decryptMessage, encryptMessage, rspc } from "~/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { useForm } from "@tanstack/react-form";
 import { useAuthUserContext } from "~/components/AuthUserContext";
-import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "~/components/ui/button";
@@ -20,7 +19,6 @@ export const Route = createFileRoute("/g/$groupId")({
 });
 
 function Group() {
-  const { getAccessToken } = useAuthorizationContext();
   const { authUser } = useAuthUserContext();
   const { groupId } = Route.useParams();
   const { privateKeyBase64 } = usePrivateKeyContext();
@@ -105,16 +103,6 @@ function Group() {
       ]);
     },
   });
-
-  const [token, setToken] = useState<string>();
-
-  useEffect(() => {
-    async function loadToken() {
-      setToken(await getAccessToken());
-    }
-
-    void loadToken();
-  }, [token]);
 
   if (getGroupQuery.isSuccess) {
     return (

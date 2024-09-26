@@ -1,9 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { BellPlus, ChevronLeftIcon, FileKeyIcon, LogOutIcon, ShareIcon } from "lucide-react";
+import { BellPlus, ChevronLeftIcon, FileKeyIcon, ShareIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { usePrivateKeyContext } from "~/components/PrivateKeyContext";
-import { useAuthorizationContext } from "~/components/AuthorizationContext";
 import { arrayBufferToBase64Url, rspc, urlB64ToUint8Array } from "~/lib/utils";
 import { useAuthUserContext } from "~/components/AuthUserContext";
 import { toast } from "sonner";
@@ -14,7 +13,7 @@ export const Route = createFileRoute("/settings")({
 });
 
 function Settings() {
-  const { logout } = useAuthorizationContext();
+  // const { logout } = useAuthorizationContext();
   const { authUser } = useAuthUserContext();
   const { privateKeyBase64 } = usePrivateKeyContext();
 
@@ -83,7 +82,7 @@ function Settings() {
       <div className="flex flex-col items-center space-y-3 px-6">
         <div>
           <Avatar className="cursor h-[92px] w-[92px] select-none text-2xl" onClick={() => profilePictureFileInputRef.current?.click()}>
-            <AvatarImage src={`https://messenger-userprofilepicturesbucket-in7dlolpfv8y.s3.amazonaws.com/u/${authUser.id}`} />
+            <AvatarImage src={`https://storage.cloud.google.com/profile-picture-bucket-63f39c6/u/${authUser.id}`} />
             <AvatarFallback>{authUser.name.split(" ").map((name) => name.charAt(0))}</AvatarFallback>
           </Avatar>
 
@@ -118,9 +117,9 @@ function Settings() {
           <FileKeyIcon className="mr-2 h-4 w-4" /> Export private key
         </Button>
 
-        <Button className="justify-start rounded-none" onClick={() => logout()} variant="ghost">
-          <LogOutIcon className="mr-2 h-4 w-4" /> Logout
-        </Button>
+        {/*<Button className="justify-start rounded-none" onClick={() => logout()} variant="ghost">*/}
+        {/*  <LogOutIcon className="mr-2 h-4 w-4" /> Logout*/}
+        {/*</Button>*/}
       </div>
     </div>
   );
